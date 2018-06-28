@@ -1,0 +1,9 @@
+GeneratorModel for yakindu::c {
+	statechart TP2_Ej3 {
+		feature Outlet {
+			targetProject = "workspace-master"
+			targetFolder = "tps/td2-2018r4051-grupo1/TP2/tp2_ejercicio3/fsm"
+			libraryTargetFolder = "tps/td2-2018r4051-grupo1/TP2/tp2_ejercicio3/fsm"
+			}
+	}
+}

@@ -66,9 +66,9 @@ static void initHardware(void);
 #define SCAN_RATE_ms 150
 #define TIEMPO_DE_DEBOUNCE_ms 20
 
-#define MASK_REDLIGHT	1
+#define MASK_REDLIGHT	4
 #define MASK_GREENLIGHT	2
-#define MASK_BLUELIGHT	4
+#define MASK_BLUELIGHT	1
 
 #define BOTON_NO_PRESIONADO 0
 #define BOTON_PRESIONADO	1
