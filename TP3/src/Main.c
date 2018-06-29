@@ -17,7 +17,10 @@ void vTask_FSM(void * a)
 int main(void)
 {
 	init_hardware();
-	xTaskCreate(vTask_FSM, (const char *)"Task_FSM", configMINIMAL_STACK_SIZE*4, 0, tskIDLE_PRIORITY+1, 0);
+
+	xTaskCreate(vTask_FSM, (const char *)"Task_FSM",
+			configMINIMAL_STACK_SIZE*4, 0, tskIDLE_PRIORITY+1, 0);
+
 	vTaskStartScheduler();
 	for(;;);
 }
