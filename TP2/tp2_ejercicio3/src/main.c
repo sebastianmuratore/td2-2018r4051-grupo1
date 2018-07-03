@@ -33,7 +33,9 @@
 /*==================[inclusions]=============================================*/
 
 #include "../../tp2_ejercicio3/fsm/TP2_Ej3.h"
+#include "../../tp2_ejercicio3/fsm/TP2_Ej3Required.h"
 #include "../../tp2_ejercicio3/inc/main.h"
+#include "../../tp2_ejercicio3/inc/TimerTicks.h"
 
 #include "../../tp2_ejercicio3/inc/FreeRTOSConfig.h"
 #include "board.h"
@@ -59,14 +61,11 @@ typedef struct _TECLA
 }TECLA;
 
 /*==================[internal functions declaration]=========================*/
-
-
 static void initHardware(void);
 
 /*==================[internal data definition]===============================*/
 #define mainQUEUE_LENGTH					( 5 )
 
-#define REFRESH_RATE_ms 700
 #define TIEMPO_DE_DIAGNOSTICO_ms 2000
 #define SCAN_RATE_ms 150
 #define TIEMPO_DE_DEBOUNCE_ms 20
@@ -95,12 +94,16 @@ static void initHardware(void);
 #define BOTON_PRESIONADO	1
 
 unsigned int tiempo_de_diagnostico = TIEMPO_DE_DIAGNOSTICO_ms;
-int tiempo_de_pulsacion = -1;
+
+#define NTIMERS	1
 
 #define NO_OPRIMIDO	0
 #define DEBOUNCE	1
 #define VALIDAR		2
 #define OPRIMIDO	3
+
+TimerTicks timers[NTIMERS];
+volatile bool SysTickFlag;
 
 /*==================[external data definition]===============================*/
 void tP2_Ej3Iface_opLed(const TP2_Ej3* handle, const sc_integer Led, const sc_boolean State){
@@ -131,42 +134,78 @@ void tP2_Ej3Iface_opLed(const TP2_Ej3* handle, const sc_integer Led, const sc_bo
 	}
 }
 
+void tP2_Ej3_setTimer(TP2_Ej3* handle, const sc_eventid evid, const sc_integer time_ms, const sc_boolean periodic)
+{
+	SetNewTimerTick(timers,NTIMERS,evid,time_ms,periodic);
+}
+
+void tP2_Ej3_unsetTimer(TP2_Ej3* handle, const sc_eventid evid)
+{
+	UnsetTimerTick(timers,NTIMERS,evid);
+}
 
 /*==================[internal functions definition]==========================*/
 
+void init_pulsadores(){
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON,SW_INVERTIR,FUNC0);
+	Chip_IOCON_PinMuxSet(LPC_IOCON,SW_REANUDAR,FUNC0);
+	Chip_IOCON_PinMuxSet(LPC_IOCON,SW_PAUSAR,FUNC0);
+
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO,SW_INVERTIR);
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO,SW_REANUDAR);
+	Chip_GPIO_SetPinDIRInput(LPC_GPIO,SW_PAUSAR);
+
+}
+
+void init_leds(){
+
+	Chip_IOCON_PinMuxSet(LPC_IOCON,BLUE_LED_PORT,FUNC0);
+	Chip_IOCON_PinMuxSet(LPC_IOCON,RED_LED_PORT,FUNC0);
+	Chip_IOCON_PinMuxSet(LPC_IOCON,GREEN_LED_PORT,FUNC0);
+
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO,BLUE_LED_PORT);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO,RED_LED_PORT);
+	Chip_GPIO_SetPinDIROutput(LPC_GPIO,GREEN_LED_PORT);
+
+}
+
 static void initHardware(void)
 {
+	Board_Init();
+	init_pulsadores();
+	init_leds();
 	SystemCoreClockUpdate();
-
-	   Board_Init();
-
-	   Chip_IOCON_PinMuxSet(LPC_IOCON,BLUE_LED_PORT,FUNC0);
-	   Chip_IOCON_PinMuxSet(LPC_IOCON,RED_LED_PORT,FUNC0);
-	   Chip_IOCON_PinMuxSet(LPC_IOCON,GREEN_LED_PORT,FUNC0);
-
-	   Chip_IOCON_PinMuxSet(LPC_IOCON,SW_INVERTIR,FUNC0);
-	   Chip_IOCON_PinMuxSet(LPC_IOCON,SW_REANUDAR,FUNC0);
-	   Chip_IOCON_PinMuxSet(LPC_IOCON,SW_PAUSAR,FUNC0);
-
-	   Chip_GPIO_SetPinDIROutput(LPC_GPIO,BLUE_LED_PORT);
-	   Chip_GPIO_SetPinDIROutput(LPC_GPIO,RED_LED_PORT);
-	   Chip_GPIO_SetPinDIROutput(LPC_GPIO,GREEN_LED_PORT);
-
-	   Chip_GPIO_SetPinDIRInput(LPC_GPIO,SW_INVERTIR);
-	   Chip_GPIO_SetPinDIRInput(LPC_GPIO,SW_REANUDAR);
-	   Chip_GPIO_SetPinDIRInput(LPC_GPIO,SW_PAUSAR);
+	SysTick_Config(SystemCoreClock / 1000);
 
 }
 
 void vTask_FSM(void * a)
 {
+	int i;
+	SysTickFlag = false;
+	InitTimerTicks(timers,NTIMERS);
 	tP2_Ej3_init(&statechart);
 	tP2_Ej3_enter(&statechart);
 
 	while (1)
 	{
-		tP2_Ej3_runCycle(&statechart);
-		vTaskDelay(1 / portTICK_RATE_MS);
+		if(SysTickFlag)
+		{
+			SysTickFlag = false;
+			UpdateTimers(timers,NTIMERS);
+			for(i=0; i<NTIMERS; i++)
+			{
+				if(IsPendEvent(timers,NTIMERS,timers[i].evid))
+				{
+					tP2_Ej3_raiseTimeEvent(&statechart,timers[i].evid);
+					MarkAsAttEvent(timers,NTIMERS,timers[i].evid);
+				}
+			}
+			tP2_Ej3_runCycle(&statechart);
+			vTaskDelay(1 / portTICK_RATE_MS);
+		}
+
 	}
 
 }
@@ -226,7 +265,6 @@ void Diagnostico(void *pvParameters)
 
 }
 
-
 void TeclaEvent (void *pvParameters)
 {
 	unsigned int EstadoDebounce = NO_OPRIMIDO;
@@ -269,9 +307,13 @@ void TeclaEvent (void *pvParameters)
 		}
 	}
 }
+
 int main(void) {
 
-	// TODO: insert code here
+	//Inicialización del Hardware
+	initHardware();
+
+	//Creación de las estructuras tecla
 	TECLA sw_invertir;
 	TECLA sw_reanudar;
 	TECLA sw_pausar;
@@ -288,12 +330,7 @@ int main(void) {
 	sw_pausar.port = 0;
 	sw_pausar.pin = 11;
 
-	//Incialización del Hardware
-	initHardware();
-
-	//Trace del RTOS
-	//traceSTART();
-
+	//Creación de la cola
 	xQueue = xQueueCreate(5,sizeof(TECLA));
 
 	//Creación de las tareas
@@ -301,17 +338,15 @@ int main(void) {
 					(const char *)"Task_FSM",
 					configMINIMAL_STACK_SIZE*4,
 					0,
-					tskIDLE_PRIORITY+2,
+					tskIDLE_PRIORITY+3,
 					0);
 
-	//Creación de las tareas
 	xTaskCreate(	vTask_LaunchEvent,
 					(const char *)"Task_LaunchEvent",
 					configMINIMAL_STACK_SIZE,
-					0,
+					NULL,
 					tskIDLE_PRIORITY+2,
 					0);
-
 
 	xTaskCreate(	Diagnostico, ( signed portCHAR* )
 					"Diag",
@@ -321,12 +356,25 @@ int main(void) {
 					NULL );
 
 	xTaskCreate(	TeclaEvent,
-					( signed portCHAR* )"Tecl",
+					( signed portCHAR* )"TeclaInvertir",
 					configMINIMAL_STACK_SIZE,
-					NULL,
+					(void*)&sw_invertir,
 					tskIDLE_PRIORITY+2,
 					NULL );
 
+	xTaskCreate(	TeclaEvent,
+					( signed portCHAR* )"TeclaReanudar",
+					configMINIMAL_STACK_SIZE,
+					(void*)&sw_reanudar,
+					tskIDLE_PRIORITY+2,
+					NULL );
+
+	xTaskCreate(	TeclaEvent,
+					( signed portCHAR* )"TeclaPausar",
+					configMINIMAL_STACK_SIZE,
+					(void*)&sw_pausar,
+					tskIDLE_PRIORITY+2,
+					NULL );
 
 	//Inicio el Scheduler
 	vTaskStartScheduler();
