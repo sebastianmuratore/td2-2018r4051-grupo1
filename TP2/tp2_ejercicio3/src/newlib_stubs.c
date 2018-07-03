@@ -4,7 +4,7 @@
  */
 
 
-#include "../../tp2_ejercicio2/inc/newlib_stubs.h"
+#include "../../tp2_ejercicio3/inc/newlib_stubs.h"
 
 
 

@@ -32,9 +32,10 @@
 
 /*==================[inclusions]=============================================*/
 
-#include "../../tp2_ejercicio2/inc/main.h"
+#include "../../tp2_ejercicio3/fsm/TP2_Ej3.h"
+#include "../../tp2_ejercicio3/inc/main.h"
 
-#include "../../tp2_ejercicio2/inc/FreeRTOSConfig.h"
+#include "../../tp2_ejercicio3/inc/FreeRTOSConfig.h"
 #include "board.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -43,6 +44,9 @@
 /*==================[macros and definitions]=================================*/
 
 /*==================[internal data declaration]==============================*/
+
+/*! This is a state machine */
+static TP2_Ej3 statechart;
 
 xQueueHandle xQueue = NULL;
 
@@ -73,7 +77,7 @@ static void initHardware(void);
 
 #define RED_LED_PORT 2,0
 #define BLUE_LED_PORT 0,26
-#define GREN_LED_PORT 2,1
+#define GREEN_LED_PORT 2,1
 
 #define LED_RED 1
 #define LED_GREEN 2
@@ -105,23 +109,23 @@ void tP2_Ej3Iface_opLed(const TP2_Ej3* handle, const sc_integer Led, const sc_bo
 
 		case LED_RED:
 			if(State)
-				Chip_GPIO_SetPinOutHigh(LPC_GPIO,LED_RED_PORT);
+				Chip_GPIO_SetPinOutHigh(LPC_GPIO,RED_LED_PORT);
 			else
-				Chip_GPIO_SetPinOutLow(LPC_GPIO,LED_RED_PORT);
+				Chip_GPIO_SetPinOutLow(LPC_GPIO,RED_LED_PORT);
 			break;
 
 		case LED_GREEN:
 			if(State)
-				Chip_GPIO_SetPinOutHigh(LPC_GPIO,LED_GREEN_PORT);
+				Chip_GPIO_SetPinOutHigh(LPC_GPIO,GREEN_LED_PORT);
 			else
-				Chip_GPIO_SetPinOutLow(LPC_GPIO,LED_GREEN_PORT);
+				Chip_GPIO_SetPinOutLow(LPC_GPIO,GREEN_LED_PORT);
 			break;
 
 		case LED_BLUE:
 			if(State)
-				Chip_GPIO_SetPinOutHigh(LPC_GPIO,LED_BLUE_PORT);
+				Chip_GPIO_SetPinOutHigh(LPC_GPIO,BLUE_LED_PORT);
 			else
-				Chip_GPIO_SetPinOutLow(LPC_GPIO,LED_BLUE_PORT);
+				Chip_GPIO_SetPinOutLow(LPC_GPIO,BLUE_LED_PORT);
 			break;
 
 	}
@@ -137,7 +141,7 @@ static void initHardware(void)
 	   Board_Init();
 
 	   Chip_IOCON_PinMuxSet(LPC_IOCON,BLUE_LED_PORT,FUNC0);
-	   Chip_IOCON_PinMuxSet(LPC_IOCON,LED_RED_PORT,FUNC0);
+	   Chip_IOCON_PinMuxSet(LPC_IOCON,RED_LED_PORT,FUNC0);
 	   Chip_IOCON_PinMuxSet(LPC_IOCON,GREEN_LED_PORT,FUNC0);
 
 	   Chip_IOCON_PinMuxSet(LPC_IOCON,SW_INVERTIR,FUNC0);
@@ -145,7 +149,7 @@ static void initHardware(void)
 	   Chip_IOCON_PinMuxSet(LPC_IOCON,SW_PAUSAR,FUNC0);
 
 	   Chip_GPIO_SetPinDIROutput(LPC_GPIO,BLUE_LED_PORT);
-	   Chip_GPIO_SetPinDIROutput(LPC_GPIO,LED_RED_PORT);
+	   Chip_GPIO_SetPinDIROutput(LPC_GPIO,RED_LED_PORT);
 	   Chip_GPIO_SetPinDIROutput(LPC_GPIO,GREEN_LED_PORT);
 
 	   Chip_GPIO_SetPinDIRInput(LPC_GPIO,SW_INVERTIR);
@@ -156,38 +160,45 @@ static void initHardware(void)
 
 void vTask_FSM(void * a)
 {
-	TP2_Ej3 fsm;
-	tP2_Ej3_init(&fsm);
-	tP2_Ej3_enter(&fsm);
-
-	TECLA tecla;
+	tP2_Ej3_init(&statechart);
+	tP2_Ej3_enter(&statechart);
 
 	while (1)
 	{
+		tP2_Ej3_runCycle(&statechart);
+		vTaskDelay(1 / portTICK_RATE_MS);
+	}
+
+}
+
+void vTask_LaunchEvent(void *pvParameters){
+
+	TECLA tecla;
+
+	while(1){
+
 		//la suspendo hasta que alguien envíe un mensaje por la cola
 		if(xQueueReceive( xQueue, &tecla, portMAX_DELAY ) == pdTRUE){
 
 			switch(tecla.id){
 				case TECLA_INVERTIR:
-					fsm.internal.vaInvertido = !fsm.internal.vaInvertido;
+					tP2_Ej3_invertirSecuencia(&statechart);
 					break;
 
 				case TECLA_REANUDAR:
-					fsm.internal.evReanudar_raised = true;
+					tP2_Ej3_raise_evReanudar(&statechart);
 					break;
 
 				case TECLA_PAUSAR:
-					fsm.internal.evPausar_raised = true;
+					tP2_Ej3_raise_evPausar(&statechart);
 					break;
 			}
 
 		}
 
-		tP2_Ej3_runCycle(&fsm);
-		vTaskDelay(1 / portTICK_RATE_MS);
 	}
-}
 
+}
 
 void Diagnostico(void *pvParameters)
 {
@@ -292,6 +303,15 @@ int main(void) {
 					0,
 					tskIDLE_PRIORITY+2,
 					0);
+
+	//Creación de las tareas
+	xTaskCreate(	vTask_LaunchEvent,
+					(const char *)"Task_LaunchEvent",
+					configMINIMAL_STACK_SIZE,
+					0,
+					tskIDLE_PRIORITY+2,
+					0);
+
 
 	xTaskCreate(	Diagnostico, ( signed portCHAR* )
 					"Diag",

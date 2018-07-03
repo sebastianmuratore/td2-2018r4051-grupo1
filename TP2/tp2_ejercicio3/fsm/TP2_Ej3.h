@@ -76,6 +76,9 @@ extern void tP2_Ej3_runCycle(TP2_Ej3* handle);
 /*! Raises a time event. */
 extern void tP2_Ej3_raiseTimeEvent(const TP2_Ej3* handle, sc_eventid evid);
 
+extern void tP2_Ej3_invertirSecuencia(TP2_Ej3* fsm);
+extern void tP2_Ej3_raise_evReanudar(TP2_Ej3* fsm);
+extern void tP2_Ej3_raise_evPausar(TP2_Ej3* fsm);
 
 /*!
  * Checks whether the state machine is active (until 2.4.1 this method was used for states).
