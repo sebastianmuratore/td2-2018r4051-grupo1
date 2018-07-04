@@ -48,7 +48,13 @@ extern "C" {
 /*==================[macros]=================================================*/
 
 /** delay in milliseconds */
-#define DELAY_MS 100
+#define	FREC_1HZ	1000
+#define	FREC_2HZ	500
+#define	FREC_5HZ	200
+#define FREC_10HZ	100
+
+
+#define DELAY_5S 5000
 
 /** led number to toggle */
 #define LED 0

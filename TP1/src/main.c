@@ -58,11 +58,11 @@ static void initHardware(void);
  * @param t desired milliseconds to wait
  */
 static void pausems(uint32_t t);
-
 /*==================[internal data definition]===============================*/
 
 /** @brief used for delay counter */
 static uint32_t pausems_count;
+static uint32_t periodo_variacion = DELAY_5S;
 
 /*==================[external data definition]===============================*/
 
@@ -88,16 +88,47 @@ static void pausems(uint32_t t)
 void SysTick_Handler(void)
 {
 	if(pausems_count > 0) pausems_count--;
+	if(periodo_variacion		> 0 )periodo_variacion--;
+
+
 }
 
 int main(void)
 {
 	initHardware();
+	uint32_t frecuencia = FREC_1HZ;
 
 	while (1)
 	{
-		Board_LED_Toggle(LED);
-		pausems(DELAY_MS);
+
+			if(periodo_variacion == 0 )
+			{
+				switch(frecuencia)
+				{
+					case FREC_1HZ:
+						frecuencia = FREC_2HZ;
+					break;
+
+					case FREC_2HZ:
+						frecuencia = FREC_5HZ;
+						break;
+
+					case FREC_5HZ:
+						frecuencia = FREC_10HZ;
+						break;
+
+
+					case FREC_10HZ:
+						frecuencia = FREC_1HZ;
+						break;
+
+				}
+			}
+
+
+			Board_LED_Toggle(LED);
+			pausems(frecuencia);
+
 	}
 }
 
