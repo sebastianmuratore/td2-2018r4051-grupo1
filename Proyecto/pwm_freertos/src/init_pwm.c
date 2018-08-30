@@ -14,8 +14,7 @@ void initHardware(void)
     Board_Init();
     init_timers();
     init_pines();
-    Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_PWM);
-    Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_PWM);
+
 }
 
 void init_timers(void)

@@ -18,14 +18,20 @@
 #define		FUNC_3		0x3
 #define		FUNC_GPIO	FUNC_0
 
-#define 	PIN_PWM		0,22
+#define 	PIN_PWM		D7
 #define		D7			2,5
 #define		SW_5		1,26
 #define		SW_4		0,18
 #define		SW_ARRIBA	SW_5
 #define		SW_ABAJO	2,10
-#define		PERIODO_PWM 2000000 //El pclock esta a 2mhz...?
-#define		DUTY		1000000
+
+#define		PERIODO_PWM MS(20)
+#define		DUTY		MS(1)
+
+#define		_1SEGUNDO	MS(1000) //El pclock esta a 2mhz...?
+
+#define		_1MS		1000
+#define		MS(x)		(x)*_1MS
 
 /*-----------FUNCIONES-----------------------*/
 void initHardware		(	void	);
