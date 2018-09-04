@@ -33,8 +33,7 @@
 PROJECT_NAME := $(notdir $(PROJECT))
 
 # Modules needed by the application
-PROJECT_MODULES := modules/$(TARGET)/freertos \
-                   modules/$(TARGET)/base \
+PROJECT_MODULES := modules/$(TARGET)/base \
                    modules/$(TARGET)/board \
                    modules/$(TARGET)/chip
 

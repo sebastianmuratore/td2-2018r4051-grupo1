@@ -38,11 +38,7 @@
  ** @{ */
 
 /*==================[inclusions]=============================================*/
-#include "../../../Ejercicio/inc/FreeRTOS.h"
-#include "pwm.h"
-#include "task.h"
-#include "board.h"
-#include "FreeRTOSConfig.h"
+
 /*==================[cplusplus]==============================================*/
 
 #ifdef __cplusplus

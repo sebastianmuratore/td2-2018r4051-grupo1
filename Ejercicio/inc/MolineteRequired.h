@@ -2,8 +2,8 @@
 #ifndef MOLINETEREQUIRED_H_
 #define MOLINETEREQUIRED_H_
 
-#include "sc_types.h"
-#include "Molinete.h"
+#include "../../Ejercicio/inc/Molinete.h"
+#include "../../Ejercicio/inc/sc_types.h"
 
 #ifdef __cplusplus
 extern "C"

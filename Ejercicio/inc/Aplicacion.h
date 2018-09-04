@@ -8,11 +8,11 @@
 #ifndef WORKSPACE_MASTER_PROJECTS_TP3_INC_APLICACION_H_
 #define WORKSPACE_MASTER_PROJECTS_TP3_INC_APLICACION_H_
 
-#include "FreeRTOS.h"
-#include "FreeRTOSConfig.h"
+#include "../../Ejercicio/inc/FreeRTOS.h"
+#include "../../Ejercicio/inc/FreeRTOSConfig.h"
+#include "../../Ejercicio/inc/Molinete.h"
+#include "../../Ejercicio/inc/MolineteRequired.h"
 #include "task.h"
-#include "Molinete.h"
-#include "MolineteRequired.h"
 
 #define	 PIN_LED 22
 #define	 PUERTO_LED	0
