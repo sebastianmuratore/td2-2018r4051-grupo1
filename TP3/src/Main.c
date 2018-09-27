@@ -39,97 +39,141 @@
 
 /*==================[inclusions]=============================================*/
 
-#include "../../TP1/inc/main.h"
-
+#include "FreeRTOS.h"
+#include "task.h"
+#include "../inc/main.h"
+#include "../inc/funciones.h"
+#include "../inc/uart.h"
 #include "board.h"
+#include "queue.h"
+
 
 /*==================[macros and definitions]=================================*/
 
 /*==================[internal data declaration]==============================*/
 
+extern xQueueHandle colarx;
+extern xQueueHandle colatx;
+
 /*==================[internal functions declaration]=========================*/
-
-/** @brief hardware initialization function
- *	@return none
- */
-static void initHardware(void);
-
-/** @brief delay function
- * @param t desired milliseconds to wait
- */
-static void pausems(uint32_t t);
-/*==================[internal data definition]===============================*/
-
-/** @brief used for delay counter */
-static uint32_t pausems_count;
-static uint32_t periodo_variacion = DELAY_5S;
 
 /*==================[external data definition]===============================*/
 
 /*==================[internal functions definition]==========================*/
 
-static void initHardware(void)
+//Creo una tarea que cada 10ms se fija si hay datos para leer.
+void vUartRead(void *parametros)
 {
-	Board_Init();
-	SystemCoreClockUpdate();
-	SysTick_Config(SystemCoreClock / 1000);
-}
+	char dato;
+	int cantidad = 0, i = 0;
 
-static void pausems(uint32_t t)
-{
-	pausems_count = t;
-	while (pausems_count != 0) {
-		__WFI();
+	while(1)
+	{
+		vTaskDelay(10/portTICK_RATE_MS);
+
+		//Leo los datos en la cola rx
+		cantidad = uxQueueMessagesWaiting(colarx);
+
+		if(cantidad > 0){
+
+			for(i=0;i<cantidad;i++){
+
+				xQueueReceive(colarx,&dato,portMAX_DELAY);
+				if(procesarTrama(dato)){
+					/*Frena todo por 1min en caso de:
+					 *Mantenimiento
+					 *Sin energía*/
+					vTaskDelay(60000/portTICK_RATE_MS);
+				}
+
+			}
+
+		}
+
 	}
+
 }
 
-/*==================[external functions definition]==========================*/
+void vSelectedSW(void *a){
 
-void SysTick_Handler(void)
-{
-	if(pausems_count > 0) pausems_count--;
-	if(periodo_variacion		> 0 )periodo_variacion--;
+	while(1){
 
+		vTaskDelay(10/portTICK_RATE_MS);
+
+		//SW1 - OFF
+		if(!Chip_GPIO_GetPinState(LPC_GPIO,SW_OFF)){
+			enviarComando(STOP);
+		}
+
+		//SW2 - VELOCIDAD 1
+		else if(!Chip_GPIO_GetPinState(LPC_GPIO,SW_VELOCIDAD1)){
+			cambioVelocidad(VELOCIDAD_1);
+		}
+
+		//SW3 - VELOCIDAD 5
+		else if(!Chip_GPIO_GetPinState(LPC_GPIO,SW_VELOCIDAD5)){
+			cambioVelocidad(VELOCIDAD_5);
+		}
+
+		//SW4 - VELOCIDAD 10
+		else if(!Chip_GPIO_GetPinState(LPC_GPIO,SW_VELOCIDAD10)){
+			cambioVelocidad(VELOCIDAD_10);
+		}
+
+		//SW5 - VELOCIDAD 20
+		else if(!Chip_GPIO_GetPinState(LPC_GPIO,SW_VELOCIDAD20)){
+			cambioVelocidad(VELOCIDAD_20);
+		}
+
+	}
 
 }
 
 int main(void)
 {
+	int i = 0;
 	initHardware();
-	uint32_t frecuencia = FREC_1HZ;
 
-	while (1)
-	{
+	colarx = xQueueCreate(512,sizeof(char));
+	colatx = xQueueCreate(512,sizeof(char));
 
-			if(periodo_variacion == 0 )
-			{
-				switch(frecuencia)
-				{
-					case FREC_1HZ:
-						frecuencia = FREC_2HZ;
+#ifdef TERMINAL_A
+	enviarComando(INICIO);
+
+	while(i==0){
+		//Leo los datos en la cola rx
+		cantidad = uxQueueMessagesWaiting(colarx);
+
+		if(cantidad > 0){
+
+			for(i=0;i<cantidad;i++){
+
+				xQueueReceive(colarx,&dato,portMAX_DELAY);
+				i = procesarTramaInicio(dato);
+
+				if(i==1)
 					break;
-
-					case FREC_2HZ:
-						frecuencia = FREC_5HZ;
-						break;
-
-					case FREC_5HZ:
-						frecuencia = FREC_10HZ;
-						break;
-
-
-					case FREC_10HZ:
-						frecuencia = FREC_1HZ;
-						break;
-
+				else{
+					i = 0;
+					enviarComando(INICIO);
 				}
 			}
-
-
-			Board_LED_Toggle(LED);
-			pausems(frecuencia);
-
+		}
 	}
+
+#endif
+
+
+	xTaskCreate(vSelectedSW, (signed char* )"Pulsadores", configMINIMAL_STACK_SIZE,
+						NULL, tskIDLE_PRIORITY+1, NULL );
+
+	xTaskCreate(vUartRead, (signed char* )"Leer Uart", configMINIMAL_STACK_SIZE,
+						NULL, tskIDLE_PRIORITY+1, NULL );
+
+	//Inicio el Scheduler
+	vTaskStartScheduler();
+
+	while (1){}
 }
 
 /** @} doxygen end group definition */

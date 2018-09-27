@@ -24,6 +24,16 @@ extern "C" {
 
 /*==================[typedef]================================================*/
 
+typedef enum{
+
+	ESTADO_IDLE 		= 0,
+	ESTADO_INICIO_TRAMA = 1,
+	ESTADO_DATO			= 2,
+	ESTADO_FIN_TRAMA	= 3
+
+}state;
+
+
 /*==================[external data declaration]==============================*/
 
 	/*======================General======================*/
@@ -78,14 +88,14 @@ extern "C" {
 #define LPC_RX2		0,11,FUNC1
 
 	/*======================TP3======================*/
-#define TERMINAL_A	1 		//Terminal A
+//#define TERMINAL_A	1 		//Terminal A
 #define TERMINAL_B	2		//Terminal B
 
 #define STX 			0xAA
 #define ETX 			0x55
 #define INICIO			0x01
-#define ARRANQUE_MOTOR	0x05
-#define FRENAR_MOTOR	0x80
+#define START			0x05
+#define STOP			0x80
 
 #define VELOCIDAD_1		0x01
 #define VELOCIDAD_5		0x05
@@ -105,7 +115,6 @@ extern "C" {
 /** @brief main function
  * @return main function should never return
  */
-void inicializarUART2 (void);
 void inicializarUART3 (void);
 
 #endif /* TPS_TD2_2018R4051_GRUPO1_TP3_INC_UART_H_ */

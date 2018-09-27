@@ -46,18 +46,11 @@ extern "C" {
 #endif
 
 /*==================[macros]=================================================*/
-
-/** delay in milliseconds */
-#define	FREC_1HZ	1000
-#define	FREC_2HZ	500
-#define	FREC_5HZ	200
-#define FREC_10HZ	100
-
-
-#define DELAY_5S 5000
-
-/** led number to toggle */
-#define LED 0
+#define	SW_OFF				0,2
+#define	SW_VELOCIDAD1		0,3
+#define	SW_VELOCIDAD5		0,4
+#define	SW_VELOCIDAD10		0,5
+#define	SW_VELOCIDAD20		0,6
 
 /*==================[typedef]================================================*/
 
