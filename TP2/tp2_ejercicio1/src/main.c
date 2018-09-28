@@ -34,9 +34,9 @@
 
 #include "../../tp2_ejercicio1/inc/main.h"
 
+#include "../../../Ejercicio/inc/FreeRTOS.h"
 #include "../../tp2_ejercicio1/inc/FreeRTOSConfig.h"
 #include "board.h"
-#include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 /*==================[macros and definitions]=================================*/

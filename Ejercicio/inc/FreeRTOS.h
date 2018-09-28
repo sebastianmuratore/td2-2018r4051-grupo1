@@ -72,11 +72,11 @@
  */
 #include <stddef.h>
 
+#include "../../Ejercicio/inc/FreeRTOSConfig.h"
 /* Basic FreeRTOS definitions. */
 #include "projdefs.h"
 
 /* Application specific configuration options. */
-#include "FreeRTOSConfig.h"
 
 /* configUSE_PORT_OPTIMISED_TASK_SELECTION must be defined before portable.h
 is included as it is used by the port layer. */

@@ -1,9 +1,11 @@
 
+#include "../../Ejercicio/inc/Molinete.h"
+
 #include <stdlib.h>
 #include <string.h>
-#include "sc_types.h"
-#include "Molinete.h"
-#include "MolineteRequired.h"
+
+#include "../../Ejercicio/inc/MolineteRequired.h"
+#include "../../Ejercicio/inc/sc_types.h"
 /*! \file Implementation of the state machine 'Molinete'
 */
 
