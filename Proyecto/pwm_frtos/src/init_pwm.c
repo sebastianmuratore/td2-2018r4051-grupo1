@@ -4,7 +4,7 @@
  *  Created on: 23 de ago. de 2018
  *      Author: sebas
  */
-#include "main.h"
+#include "../../pwm_frtos/inc/main.h"
 
 
 void initHardware(void)
@@ -12,11 +12,15 @@ void initHardware(void)
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock/1000);
     Board_Init();
-    init_timers();
-    init_pines();
+    init_PWM();
 
 }
 
+void init_PWM ()
+{
+	 init_pinesPWM();
+	 init_timers();
+}
 void init_timers(void)
 {
 	uint32_t pclock=0;
@@ -50,7 +54,7 @@ void init_timers(void)
 	   NVIC_EnableIRQ(TIMER1_IRQn);
 }
 
-void init_pines (	void	)
+void init_pinesPWM (	void	)
 {
 
 	Chip_IOCON_PinMuxSet(LPC_IOCON,PIN_PWM,FUNC_GPIO);

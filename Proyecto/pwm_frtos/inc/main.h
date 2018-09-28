@@ -34,15 +34,15 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-/** \addtogroup rtos_blink FreeRTOS blink example
- ** @{ */
 
 /*==================[inclusions]=============================================*/
-#include "pwm.h"
-#include "FreeRTOS.h"
+#include "../../pwm_frtos/inc/FreeRTOS.h"
+#include "../../pwm_frtos/inc/FreeRTOSConfig.h"
+#include "../../pwm_frtos/inc/General.h"
+#include "../../pwm_frtos/inc/pwm.h"
 #include "task.h"
 #include "board.h"
-#include "FreeRTOSConfig.h"
+#include "Semphr.h"
 /*==================[cplusplus]==============================================*/
 
 #ifdef __cplusplus

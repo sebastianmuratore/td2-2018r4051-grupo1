@@ -4,7 +4,7 @@
  *  Created on: 23 de ago. de 2018
  *      Author: sebas
  */
-#include "main.h"
+#include "../../pwm_frtos/inc/main.h"
 
 void TIMER1_IRQHandler(void)
 {

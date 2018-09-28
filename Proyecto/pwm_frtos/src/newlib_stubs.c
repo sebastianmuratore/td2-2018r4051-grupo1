@@ -4,7 +4,7 @@
  */
 
 
-#include "../../pwm_freertos/inc/newlib_stubs.h"
+#include "../../pwm_frtos/inc/newlib_stubs.h"
 
 
 

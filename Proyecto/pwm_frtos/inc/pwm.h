@@ -8,20 +8,9 @@
 #ifndef TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_INC_PWM_H_
 #define TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_INC_PWM_H_
 
-#define 	HIGH		1
-#define 	LOW 		0
-#define		INPUT		0
-#define		OUTPUT		1
-#define		FUNC_0		0x0
-#define		FUNC_1		0x1
-#define		FUNC_2		0x2
-#define		FUNC_3		0x3
-#define		FUNC_GPIO	FUNC_0
+
 
 #define 	PIN_PWM		D7
-#define		D7			2,5
-#define		SW_5		1,26
-#define		SW_4		0,18
 #define		SW_ARRIBA	SW_5
 #define		SW_ABAJO	2,10
 
@@ -33,9 +22,21 @@
 #define		_1MS		1000
 #define		MS(x)		(x)*_1MS
 
+
+#define REFRESH_RATE_ms 500
+#define TIEMPO_DE_DIAGNOSTICO_ms 2000
+#define TIEMPO_DE_DEBOUNCE_ms 20
+#define SCAN_RATE_ms 150
+
+#define NO_OPRIMIDO	0
+#define DEBOUNCE	1
+#define VALIDAR		2
+#define OPRIMIDO	3
+
 /*-----------FUNCIONES-----------------------*/
 void initHardware		(	void	);
+void init_PWM 			(	void	);
 void init_timers		(	void	);
-void init_pines 		(	void	);
+void init_pinesPWM 		(	void	);
 
 #endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_INC_PWM_H_ */
