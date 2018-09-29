@@ -35,12 +35,11 @@
 #include "../../tp2_ejercicio3/fsm/TP2_Ej3.h"
 #include "../../tp2_ejercicio3/fsm/TP2_Ej3Required.h"
 #include "../../tp2_ejercicio3/inc/main.h"
-
-#include "../../../Ejercicio/inc/FreeRTOS.h"
 #include "../../tp2_ejercicio3/inc/TimerTicks.h"
 
 #include "../../tp2_ejercicio3/inc/FreeRTOSConfig.h"
 #include "board.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 
