@@ -46,22 +46,23 @@ int main(void)
 {
 	SystemCoreClockUpdate();
 	Board_Init();
-	uint32_t data;
 
+	Chip_GPIO_Init(LPC_GPIO);
+	Chip_IOCON_Init(LPC_IOCON);
 	Chip_SystemInit();
 
-	//init_SPI();
 	init_pinesLCD();
+
 	ili9341_Init();
 
+//	data = ili9341_ReadData( LCD_RDDCOLMOD   ,2);
 
-	//ili9341_WriteCommand(LCD_SWRESET);
-	data = ili9341_ReadData( LCD_RDDCOLMOD   ,2);
-	ili9341_WriteCommand(LCD_DINVON );
-
-	setColor(0,0,255);
-	fillRect(0,0,40,40);
-
+	TFT_setColor(255,255,0);
+//	TFT_fillRect(0,0,220,300);
+	TFT_DrawRectangle(0,0,250,200,FALSE);
+	TFT_setColor(255,255,255);
+	TFT_DrawText(50,50,"Estocasticos",LCD_FONT_SIZE_LARGE);
+	TFT_setColor(255,0,0);
 	while (1)
 	{
 
