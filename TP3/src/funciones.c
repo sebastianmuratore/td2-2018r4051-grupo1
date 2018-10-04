@@ -112,7 +112,7 @@ int procesarTramaInicio(char dato){
 			break;
 
 		case ESTADO_INICIO_TRAMA:
-			if(dato == INICIO)
+			if(dato == OK)
 				estado = ESTADO_FIN_TRAMA;
 			break;
 
