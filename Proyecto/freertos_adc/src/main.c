@@ -46,7 +46,6 @@ void ADC_IRQHandler(void)
 	uint16_t porcentaje;
 	Chip_ADC_ReadValue(LPC_ADC, ADC_CH1, &data);
 	porcentaje=100-((data*100)/4095);
-	//Chip_DAC_UpdateValue(LPC_DAC,1023-((data>>2)&0x3FF));
 
 	xQueueSendFromISR(xQueue,&data, &HigherPriorityTaskWoken);
 	portEND_SWITCHING_ISR(HigherPriorityTaskWoken);
