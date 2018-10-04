@@ -9,7 +9,7 @@ void ili9341_Init(void)
 {
 	color = 0;
 
-	ili9341_Reset();
+	LCD_Reset();
 	ili9341_WriteReg(LCD_POWERA,1);
 	ili9341_WriteData(0x39);
 	ili9341_WriteData(0x2C);
@@ -74,7 +74,7 @@ void ili9341_Init(void)
 	ili9341_WriteReg(LCD_DISPLAY_ON,1);    //Display on
 	ili9341_WriteReg(LCD_GRAM,1);
 
-	TFT_setColor(255, 255, 255);
+	setColor(255, 255, 255);
 }
 
 /**
@@ -96,7 +96,7 @@ uint16_t ili9341_ReadID(void)
 void ili9341_DisplayOn(void)
 {
   /* Display On */
-  ili9341_WriteCommand(LCD_DISPLAY_ON);
+  ili9341_WriteReg(LCD_DISPLAY_ON,READ);
 }
 
 /**
@@ -107,7 +107,7 @@ void ili9341_DisplayOn(void)
 void ili9341_DisplayOff(void)
 {
   /* Display Off */
-  ili9341_WriteCommand(LCD_DISPLAY_OFF);
+  ili9341_WriteReg(LCD_DISPLAY_OFF,READ);
 }
 
 
@@ -185,6 +185,160 @@ uint32_t ili9341_ReadData(uint8_t RegValue, uint8_t ReadSize)
 
 
 
+/**
+  * @brief  Get LCD PIXEL WIDTH.
+  * @param  None
+  * @retval LCD PIXEL WIDTH.
+  */
+uint16_t ili9341_GetLcdPixelWidth(void)
+{
+  /* Return LCD PIXEL WIDTH */
+  return ILI9341_LCD_PIXEL_WIDTH;
+}
+
+/**
+  * @brief  Get LCD PIXEL HEIGHT.
+  * @param  None
+  * @retval LCD PIXEL HEIGHT.
+  */
+uint16_t ili9341_GetLcdPixelHeight(void)
+{
+  /* Return LCD PIXEL HEIGHT */
+  return ILI9341_LCD_PIXEL_HEIGHT;
+}
+
+/**
+  * @}
+  */
+
+void setColor(uint8_t r, uint8_t g, uint8_t b)
+{
+
+	 //color =((g&28)<<3|b>>3)| ((r&248)|g>>5)<<8; // <-- RGB
+	uint16_t rr,gg,bb;
+	rr = (r&248)<<8;
+	gg = ((g&252)<<3);
+	bb = (b>>3);
+
+	color = rr | gg | bb ; // <-- En datos serie se manda 5b R + 5b G + 6b B
+}
+
+/**
+  * @}
+  */
+
+void fillRect(int x1, int y1, int x2, int y2)
+{
+	//Llena todo el rectangulo del mismo color
+
+	if (x1>x2)
+	{
+		swap(int, x1, x2); // int t = x1; x1 = x2; x2 = t; Intercambia los limites (para que queden ordenados, x1 < x2
+	}
+	if (y1>y2)
+	{
+		swap(int, y1, y2); // Intercambia los limites para que queden ordenados y1<y2
+	}
+
+	setXY(x1, y1, x2, y2); //Se setean los limites entre los cuales se va a dibujar
+	_fast_fill_16(color, (((x2-x1)+1)*((y2-y1)+1))); //llena todo el rectangulo de el mismo color
+}
+
+/**
+  * @}
+  */
+void clrScr()
+{
+	clrXY();
+
+	_fast_fill_16(0,((ILI9341_LCD_PIXEL_WIDTH+1)*(ILI9341_LCD_PIXEL_HEIGHT+1)));
+}
+
+/**
+  * @}
+  */
+
+void clrXY()
+{
+	if (orientacion==PORTRAIT)
+		setXY(0,0,ILI9341_LCD_PIXEL_HEIGHT,ILI9341_LCD_PIXEL_WIDTH);
+	else
+		setXY(0,0,ILI9341_LCD_PIXEL_WIDTH,ILI9341_LCD_PIXEL_HEIGHT);
+
+}
+
+/**
+  * @}
+  */
+
+void setXY(int x1, int y1, int x2, int y2)
+{
+	if (orientacion==LANDSCAPE )
+	{
+		swap(int, x1, y1);
+		swap(int, x2, y2);
+		y1=ILI9341_LCD_PIXEL_HEIGHT-y1;
+		y2=ILI9341_LCD_PIXEL_HEIGHT-y2;
+		swap(int, y1, y2);
+	}
+
+	ili9341_WriteReg(LCD_COLUMN_ADDR,TRUE); //Registro que define las columnas entre las cuales dibuja
+	ili9341_WriteData(x1>>8); // Se envia la parte mas significativa de la columna inicial
+	ili9341_WriteData(x1); // Se envia la parte mas significativa de la columna inicial
+	ili9341_WriteData(x2>>8); // Parte menos significativa de la columna  final
+	ili9341_WriteData(x2); // Parte mas significativa de la columna final
+	ili9341_WriteReg(LCD_PAGE_ADDR,TRUE); // Lo mismo pero con las filas
+	ili9341_WriteData(y1>>8);
+	ili9341_WriteData(y1);
+	ili9341_WriteData(y2>>8);
+	ili9341_WriteData(y2);
+}
+/**
+  * @}
+  */
+
+void _fast_fill_16(uint16_t dato, int pix)
+{
+	//pix es la cantidad de pixeles que tengo que refrescar
+
+	int i,c;
+
+
+	ili9341_WriteCommand(LCD_GRAM);
+
+	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_CSX);
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_DCX);
+	//Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_RDX);
+	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_WRX);
+
+	for (i=0; i<pix; i++)
+	{
+
+
+
+		for(c=0;c<2;c++)
+		{
+
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D0,( color >> ( 0 + c*8 )) & 0x01);
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D1,( color >> ( 1 + c*8 )) & 0x01);
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D2,( color >> ( 2 + c*8 )) & 0x01);
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D3,( color >> ( 3 + c*8 )) & 0x01);
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D4,( color >> ( 4 + c*8 )) & 0x01);
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D5,( color >> ( 5 + c*8 )) & 0x01);
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D6,( color >> ( 6 + c*8 )) & 0x01);
+			Chip_GPIO_SetPinState(LPC_GPIO,PIN_D7,( color >> ( 7 + c*8 )) & 0x01);
+
+			Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_WRX);
+			Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_WRX);
+		}
+	}
+
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_CSX);
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_WRX);
+
+}
+
+
 void 	ili9341_WriteData	(	uint8_t RegValue )
 {
 
@@ -216,15 +370,26 @@ void 	ili9341_WriteReg		(	uint8_t LCD_Reg	, uint8_t command)
 
 void 	ili9341_WriteReg		(	uint8_t LCD_Reg	, uint8_t command)
 {
+	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_CSX);
+	//Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_RDX);
+	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_WRX);
+
+	if(command) Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_DCX);
+	else 		Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_DCX);
 
 
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D0,( LCD_Reg >> 0 ) & 0x01);
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D1,( LCD_Reg >> 1 ) & 0x01);
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D2,( LCD_Reg >> 2 ) & 0x01);
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D3,( LCD_Reg >> 3 ) & 0x01);
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D4,( LCD_Reg >> 4 ) & 0x01);
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D5,( LCD_Reg >> 5 ) & 0x01);
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D6,( LCD_Reg >> 6 ) & 0x01);
+	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D7,( LCD_Reg >> 7 ) & 0x01);
 
-	if(command==1)	ili9341_enableCommandWrite();
-	else 			ili9341_enableDataWrite();
 
-
-	ili9341_cargarDato(LCD_Reg);
-	ili9341_disableWrite();
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_WRX);
+	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_CSX);
 
 
 }
@@ -236,7 +401,7 @@ void    ili9341_WriteCommand(uint8_t RegValue)
 	ili9341_WriteReg(RegValue,TRUE);
 }
 
-void ili9341_Reset(void) {
+void LCD_Reset(void) {
 	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_RST);
 	TIMER_delay_ms(5);
 	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_RST);
@@ -248,42 +413,4 @@ void ili9341_Reset(void) {
 	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_WRX);
 }
 
-
-void ili9341_cargarDato		(uint8_t dato)
-{
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D0,( dato >> 0 ) & 0x01);
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D1,( dato >> 1 ) & 0x01);
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D2,( dato >> 2 ) & 0x01);
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D3,( dato >> 3 ) & 0x01);
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D4,( dato >> 4 ) & 0x01);
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D5,( dato >> 5 ) & 0x01);
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D6,( dato >> 6 ) & 0x01);
-	Chip_GPIO_SetPinState(LPC_GPIO,PIN_D7,( dato >> 7 ) & 0x01);
-
-}
-void ili9341_disableWrite(	void	)
-{
-	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_WRX);
-	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_CSX);
-
-}
-
-void ili9341_enableCommandWrite(	void	)
-{
-	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_CSX);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_WRX);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_DCX);
-}
-void ili9341_enableDataWrite(	void	)
-{
-	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_CSX);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_WRX);
-	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_DCX);
-}
-
-void ili9341_write(void)
-{
-	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_WRX);
-	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_WRX);
-
-}
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

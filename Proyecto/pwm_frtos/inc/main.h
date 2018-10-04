@@ -36,10 +36,14 @@
 
 
 /*==================[inclusions]=============================================*/
+
 #include "../../pwm_frtos/inc/FreeRTOS.h"
 #include "../../pwm_frtos/inc/FreeRTOSConfig.h"
 #include "../../pwm_frtos/inc/General.h"
 #include "../../pwm_frtos/inc/pwm.h"
+=======
+#include "../../../Ejercicio/inc/FreeRTOS.h"
+#include "pwm.h"
 #include "task.h"
 #include "board.h"
 #include "Semphr.h"
