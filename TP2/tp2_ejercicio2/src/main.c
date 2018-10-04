@@ -34,9 +34,9 @@
 
 #include "../../tp2_ejercicio2/inc/main.h"
 
-#include "../../../Ejercicio/inc/FreeRTOS.h"
 #include "../../tp2_ejercicio2/inc/FreeRTOSConfig.h"
 #include "board.h"
+#include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 
@@ -99,10 +99,10 @@ static void initHardware(void)
 	    Chip_IOCON_PinMuxSet(LPC_IOCON,2,0,FUNC0);
 	    Chip_IOCON_PinMuxSet(LPC_IOCON,2,1,FUNC0);
 	    Chip_IOCON_PinMuxSet(LPC_IOCON,2,10,FUNC0);
-	    Chip_GPIO_SetPinDIRInput(LPC_GPIO,2,10); // Pulsador
 	    Chip_GPIO_SetPinDIROutput(LPC_GPIO,0,26); //Azul
 	    Chip_GPIO_SetPinDIROutput(LPC_GPIO,2,0); // Rojo
 	    Chip_GPIO_SetPinDIROutput(LPC_GPIO,2,1); // Verde
+	    Chip_GPIO_SetPinDIRInput(LPC_GPIO,2,10); // Pulsador
 
 }
 

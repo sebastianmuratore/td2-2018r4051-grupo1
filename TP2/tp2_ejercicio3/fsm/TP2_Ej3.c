@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <string.h>
 #include "sc_types.h"
@@ -131,6 +130,18 @@ void tP2_Ej3_exit(TP2_Ej3* handle)
 	/* Default exit sequence for statechart TP2_Ej3 */
 	tP2_Ej3_exseq_main_region(handle);
 	tP2_Ej3_exact(handle);
+}
+
+void tP2_Ej3_invertirSecuencia(TP2_Ej3* fsm){
+	fsm->internal.vaInvertido = !fsm->internal.vaInvertido;
+}
+
+void tP2_Ej3_raise_evReanudar(TP2_Ej3* fsm){
+	fsm->internal.evReanudar_raised = bool_true;
+}
+
+void tP2_Ej3_raise_evPausar(TP2_Ej3* fsm){
+	fsm->internal.evPausar_raised = bool_true;
 }
 
 sc_boolean tP2_Ej3_isActive(const TP2_Ej3* handle)
