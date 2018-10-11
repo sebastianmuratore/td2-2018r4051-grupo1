@@ -10,7 +10,7 @@
 
 void initHardware(void);
 void cambioVelocidad(char velocidad);
-void enviarComando(char comando);
+void enviarComando(char terminal, char comando);
 void inicializarPulsadores(void);
 void validarAccion(char accion, int velocidad);
 int procesarTrama(char dato);

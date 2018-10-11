@@ -52,8 +52,13 @@
 
 /*==================[internal data declaration]==============================*/
 
-extern xQueueHandle colarx;
-extern xQueueHandle colatx;
+/*UART3*/
+extern xQueueHandle colarxA;
+extern xQueueHandle colatxA;
+/*UART2*/
+extern xQueueHandle colarxB;
+extern xQueueHandle colatxB;
+
 
 /*==================[internal functions declaration]=========================*/
 
@@ -62,10 +67,11 @@ extern xQueueHandle colatx;
 /*==================[internal functions definition]==========================*/
 
 //Creo una tarea que cada 10ms se fija si hay datos para leer.
-void vUartRead(void *parametros)
+void vUartRead(void *parametro)
 {
 	char dato;
 	int cantidad = 0, i = 0;
+	xQueueHandle colarx = *((xQueueHandle *)parametro);
 
 	while(1)
 	{
@@ -79,11 +85,16 @@ void vUartRead(void *parametros)
 			for(i=0;i<cantidad;i++){
 
 				xQueueReceive(colarx,&dato,portMAX_DELAY);
-				if(procesarTrama(dato)){
+				i = procesarTrama(dato);
+				if(i > 0){
 					/*Frena todo por 1min en caso de:
 					 *Mantenimiento
-					 *Sin energía*/
+					 *Sin energía
+					 *Luego vuelve a enviar comando de encendido*/
 					vTaskDelay(60000/portTICK_RATE_MS);
+					cambioVelocidad(VELOCIDAD_1);
+					i = 0;
+
 				}
 
 			}
@@ -102,7 +113,7 @@ void vSelectedSW(void *a){
 
 		//SW1 - OFF
 		if(!Chip_GPIO_GetPinState(LPC_GPIO,SW_OFF)){
-			enviarComando(STOP);
+			enviarComando(TERMINAL_A, STOP);
 		}
 
 		//SW2 - VELOCIDAD 1
@@ -131,31 +142,36 @@ void vSelectedSW(void *a){
 
 int main(void)
 {
-	int i = 0;
+	int i, flag = 0, cantidad = 0;
+	char dato;
 	initHardware();
 
-	colarx = xQueueCreate(512,sizeof(char));
-	colatx = xQueueCreate(512,sizeof(char));
+	colarxA = xQueueCreate(512,sizeof(char));
+	colatxA = xQueueCreate(512,sizeof(char));
+	colarxB = xQueueCreate(512,sizeof(char));
+	colatxB = xQueueCreate(512,sizeof(char));
 
-#ifdef TERMINAL_A
-	enviarComando(INICIO);
 
-	while(i==0){
+	//Si es la terminal A, no comienza el proceso hasta que no reciba un OK, al INICIO enviado.
+	#ifdef EQUIPO_A
+	enviarComando(TERMINAL_A, INICIO);
+
+	while(flag==0){
 		//Leo los datos en la cola rx
-		cantidad = uxQueueMessagesWaiting(colarx);
+		cantidad = uxQueueMessagesWaiting(colarxA);
 
 		if(cantidad > 0){
 
 			for(i=0;i<cantidad;i++){
 
-				xQueueReceive(colarx,&dato,portMAX_DELAY);
-				i = procesarTramaInicio(dato);
+				xQueueReceive(colarxA,&dato,portMAX_DELAY);
+				flag = procesarTramaInicio(dato);
 
-				if(i==1)
+				if(flag==1)
 					break;
 				else{
 					i = 0;
-					enviarComando(INICIO);
+					enviarComando(TERMINAL_A, INICIO);
 				}
 			}
 		}
@@ -163,12 +179,24 @@ int main(void)
 
 #endif
 
-
+/*Si es la terminal A:
+ * Crea la tarea para el manejo de los pulsadores
+ * Le asigna la comunicación a traves de la UART3
+*/
+#ifdef EQUIPO_A
 	xTaskCreate(vSelectedSW, (signed char* )"Pulsadores", configMINIMAL_STACK_SIZE,
 						NULL, tskIDLE_PRIORITY+1, NULL );
+	xTaskCreate(vUartRead, (signed char* )"Leer Uart 3", configMINIMAL_STACK_SIZE,
+							&colarxA, tskIDLE_PRIORITY+1, NULL );
+#endif
 
-	xTaskCreate(vUartRead, (signed char* )"Leer Uart", configMINIMAL_STACK_SIZE,
-						NULL, tskIDLE_PRIORITY+1, NULL );
+/*Si es la terminal B:
+ * Le asigna la comunicación a traves de la UART2
+*/
+#ifdef EQUIPO_B
+	xTaskCreate(vUartRead, (signed char* )"Leer Uart 2", configMINIMAL_STACK_SIZE,
+							&colarxB, tskIDLE_PRIORITY+1, NULL );
+#endif
 
 	//Inicio el Scheduler
 	vTaskStartScheduler();

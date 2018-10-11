@@ -6,8 +6,12 @@
 #include "queue.h"
 #include "../inc/funciones.h"
 
-extern xQueueHandle colarx;
-extern xQueueHandle colatx;
+/*UART3*/
+extern xQueueHandle colarxA;
+extern xQueueHandle colatxA;
+/*UART2*/
+extern xQueueHandle colarxB;
+extern xQueueHandle colatxB;
 
 void initHardware(void)
 {
@@ -22,18 +26,26 @@ void cambioVelocidad(char velocidad){
 	char start = START;
 	char etx = ETX;
 	char stx = STX;
-	xQueueSend(colatx, &(start), portMAX_DELAY);
-	xQueueSend(colatx, &(velocidad), portMAX_DELAY);
-	xQueueSend(colatx, &(etx), portMAX_DELAY);
+	xQueueSend(colatxA, &(start), portMAX_DELAY);
+	xQueueSend(colatxA, &(velocidad), portMAX_DELAY);
+	xQueueSend(colatxA, &(etx), portMAX_DELAY);
 	Chip_UART_Send(LPC_UART3, &(stx), 1);
 }
 
-void enviarComando(char comando){
+void enviarComando(char terminal, char comando){
 	char etx = ETX;
 	char stx = STX;
-	xQueueSend(colatx, &(comando), portMAX_DELAY);
-	xQueueSend(colatx, &(etx), portMAX_DELAY);
-	Chip_UART_Send(LPC_UART3, &(stx), 1);
+	if(terminal == TERMINAL_B){
+		xQueueSend(colatxB, &(comando), portMAX_DELAY);
+		xQueueSend(colatxB, &(etx), portMAX_DELAY);
+		Chip_UART_Send(LPC_UART2, &(stx), 1);
+	}
+	else if(terminal == TERMINAL_A){
+		xQueueSend(colatxA, &(comando), portMAX_DELAY);
+		xQueueSend(colatxA, &(etx), portMAX_DELAY);
+		Chip_UART_Send(LPC_UART3, &(stx), 1);
+	}
+
 }
 
 void inicializarPulsadores(void){
@@ -60,16 +72,17 @@ void validarAccion(char accion, int velocidad){
 	switch(accion){
 
 		case INICIO:
-			enviarComando(OK);
+			enviarComando(TERMINAL_B, OK);
 			break;
 
 		case START:
-			//cambiarVelocidadMotor(velocidad);
-			enviarComando(OK);
+			enviarComando(TERMINAL_B, OK);
+			//Se deberia llamar a una función que arranque el motor pero no es requerido
 			break;
 
 		case STOP:
-			enviarComando(OK);
+			enviarComando(TERMINAL_B, OK);
+			//Se deberia llamar a una función que frene el motor pero no es requerido
 			break;
 
 		case OK:
@@ -80,20 +93,12 @@ void validarAccion(char accion, int velocidad){
 			printf("Mensaje inválido");
 			break;
 
-		case SIN_ENERGIA:
-			printf("Motor sin energía, vuelva a enviar el mensaje en 1min");
-			break;
-
 		case MOTOR_ACTIVO:
-			printf("En caso de querer mofidicar la velocidad primero debe frenar el motor");
+			enviarComando(TERMINAL_A, STOP);
 			break;
 
 		case VELOCIDAD_INCORRECTA:
 			printf("Velocidad incorrecta");
-			break;
-
-		case MANTENIMIENTO:
-			printf("Motor en mantenimiento, vuelva a enviar el mensaje en 1min");
 			break;
 
 	}
@@ -147,30 +152,30 @@ int procesarTrama(char dato){
 			break;
 
 		case ESTADO_INICIO_TRAMA:
-			accion = dato;
 			if(dato == START)
 				estado = ESTADO_DATO;
-			else if(dato == ETX)
+			else{
+				accion = dato;
 				estado = ESTADO_FIN_TRAMA;
-			else
-				estado = ESTADO_IDLE;
+			}
 			break;
 
 		case ESTADO_DATO:
 			velocidad = dato;
-			if(dato == ETX)
-				estado = ESTADO_FIN_TRAMA;
-			else
-				estado = ESTADO_IDLE;
+			estado = ESTADO_FIN_TRAMA;
 			break;
 
 		case ESTADO_FIN_TRAMA:
-			validarAccion(accion, velocidad);
-			estado = ESTADO_IDLE;
-			if(accion == MANTENIMIENTO || accion == SIN_ENERGIA)
-				return 1;
-			else
-				return 0;
+			if(dato == STX){
+				estado = ESTADO_IDLE;
+				if(accion == MANTENIMIENTO || accion == SIN_ENERGIA)
+					return accion;
+				else{
+					validarAccion(accion, velocidad);
+					return 0;
+				}
+
+			}
 			break;
 
 		default:

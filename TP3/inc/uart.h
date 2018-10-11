@@ -88,7 +88,7 @@ typedef enum{
 #define LPC_RX2		0,11,FUNC1
 
 	/*======================TP3======================*/
-//#define TERMINAL_A	1 		//Terminal A
+#define TERMINAL_A	1 		//Terminal A
 #define TERMINAL_B	2		//Terminal B
 
 #define STX 			0xAA
@@ -116,5 +116,6 @@ typedef enum{
  * @return main function should never return
  */
 void inicializarUART3 (void);
+void inicializarUART2 (void);
 
 #endif /* TPS_TD2_2018R4051_GRUPO1_TP3_INC_UART_H_ */

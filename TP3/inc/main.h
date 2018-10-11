@@ -46,6 +46,10 @@ extern "C" {
 #endif
 
 /*==================[macros]=================================================*/
+//Seleccionar cual de las 2 terminales (o ambas) se van a simular en este micro
+//#define EQUIPO_A
+#define EQUIPO_B
+
 #define	SW_OFF				0,2
 #define	SW_VELOCIDAD1		0,3
 #define	SW_VELOCIDAD5		0,4
