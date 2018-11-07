@@ -4,7 +4,7 @@
  */
 
 
-#include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/newlib_stubs.h"
+#include "../inc/newlib_stubs.h"
 
 
 

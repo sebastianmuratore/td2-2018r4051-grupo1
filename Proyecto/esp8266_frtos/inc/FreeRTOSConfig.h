@@ -54,10 +54,15 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+#define CORE_M3
+
 #ifndef __IASMARM__
 /* For SystemCoreClock */
 #include "board.h"
 #endif
+
+
+
 
 /*-----------------------------------------------------------
  * Application specific definitions.
@@ -68,7 +73,6 @@
  * THESE PARAMETERS ARE DESCRIBED WITHIN THE 'CONFIGURATION' SECTION OF THE
  * FreeRTOS API DOCUMENTATION AVAILABLE ON THE FreeRTOS.org WEB SITE.
  *----------------------------------------------------------*/
-
 #define configUSE_PREEMPTION		1
 #define configUSE_IDLE_HOOK			1
 #define configMAX_PRIORITIES		( ( unsigned portBASE_TYPE ) 5 )
@@ -95,7 +99,7 @@
 
 #define configUSE_COUNTING_SEMAPHORES 	1
 #define configUSE_ALTERNATIVE_API 		0
-#define configCHECK_FOR_STACK_OVERFLOW	1
+#define configCHECK_FOR_STACK_OVERFLOW	2
 #define configUSE_RECURSIVE_MUTEXES		1
 #define configQUEUE_REGISTRY_SIZE		10
 #define configGENERATE_RUN_TIME_STATS	0

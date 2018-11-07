@@ -34,27 +34,28 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-/** \addtogroup rtos_blink FreeRTOS blink example
- ** @{ */
 
 /*==================[inclusions]=============================================*/
-#include "../inc/FreeRTOSConfig.h"
-#include "../inc/uart_driver.h"
-#include "../inc/functions.h"
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 
+#include "../../pwm_frtos/inc/FreeRTOS.h"
+#include "../../pwm_frtos/inc/FreeRTOSConfig.h"
+#include "../../pwm_frtos/inc/General.h"
+#include "../../pwm_frtos/inc/pwm.h"
+=======
+#include "../../../Ejercicio/inc/FreeRTOS.h"
+#include "pwm.h"
+#include "task.h"
+#include "board.h"
+#include "Semphr.h"
 /*==================[cplusplus]==============================================*/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/*==================[macros]=================================================*/
+
+/*==================[typedef]================================================*/
 
 /*==================[external data declaration]==============================*/
 
@@ -63,6 +64,7 @@ extern "C" {
 /** @brief main function
  * @return main function should never return
  */
+int main(void);
 
 /*==================[cplusplus]==============================================*/
 

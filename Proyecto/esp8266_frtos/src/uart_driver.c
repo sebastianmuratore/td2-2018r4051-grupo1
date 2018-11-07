@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/uart_driver.h"
 
 #include "../../../modules/lpc1769/ciaa/inc/ciaaIO.h"
@@ -13,21 +14,16 @@
 #include "../../PWMyTFT/inc/FreeRTOS.h"
 
 
+=======
+#include "../inc/main.h"
+>>>>>>> b7cb94a6f629c8ab2dac3b471bedce9836c0ee3f
 
 extern xQueueHandle colarx;
 extern xQueueHandle colatx;
-extern espNetworks nets[15];
+extern xQueueHandle colaConexion;
 
 extern unsigned char inicializado;
 extern unsigned char revisaInic;
-
-/*uint8_t rxbuf[UART_BUF_SIZE];
-uint8_t txbuf[UART_BUF_SIZE];
-
-RINGBUFF_T rrb;
-RINGBUFF_T trb;
-
-uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 
 #define _GNU_SOURCE
 
@@ -35,14 +31,14 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 #define TIMEOUT 100
 
 
- void inicializarUART3 (void)
+void inicializarUART3 (void)
 {
 
  	Chip_IOCON_PinMuxSet(LPC_IOCON,0,0,FUNC2); //TXD3
  	Chip_IOCON_PinMuxSet(LPC_IOCON,0,1,FUNC2); //RXD3
 
 	Chip_UART_Init(LPC_UART3);
- 	Chip_UART_SetBaud(LPC_UART3, 9600);
+ 	Chip_UART_SetBaud(LPC_UART3, 115200);
 
  	Chip_UART_ConfigData(LPC_UART3, UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
  	//Configuracion de UART con: 8 bits de dato, 1 bit de stop, sin bit de paridad
@@ -51,7 +47,7 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
  	// Por default: FIFO_DMAMode = DISABLE, FIFO_Level=UART_FIFO_TRGLEV0
  	// FIFO_ResetRxBuf=ENABLE, FIFO_ResetTxBuf=ENABLE, FIFO_State=ENABLE
  	Chip_UART_SetupFIFOS(LPC_UART3, UART_FCR_FIFO_EN | UART_FCR_RX_RS |
- 			UART_FCR_TX_RS | UART_FCR_TRG_LEV3);
+ 			UART_FCR_TX_RS | UART_FCR_TRG_LEV0);
 
  	/* dummy read */
  	Chip_UART_ReadByte(LPC_UART3);
@@ -64,61 +60,118 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
  	Chip_UART_IntEnable(LPC_UART3,(UART_IER_RBRINT | UART_IER_THREINT));
 
  	NVIC_EnableIRQ(UART3_IRQn);
- 	//NVIC_SetPriority(UART3_IRQn,8);
+ 	NVIC_SetPriority(UART3_IRQn,8);
 
  	inicializado = 1;
 
  }
 
-/* void inicializarUART3BIS (void)
- {
+ espStatus_e procesarRedesDisponibles(char dato){
 
-  	Chip_IOCON_PinMuxSet(LPC_IOCON,0,0,FUNC2); //TXD3
-  	Chip_IOCON_PinMuxSet(LPC_IOCON,0,1,FUNC2); //RXD3
+	 static int estado = ESP8266_IDLE;
+	 static int i = 0;
+	 static int j = 0;
+	 espStatus_e rv = ESP8266_TIMEOUT;
 
- 	Chip_UART_Init(LPC_UART3);
-  	Chip_UART_SetBaud(LPC_UART3, 9600);
+	 switch(estado){
+	 	 case ESP8266_IDLE:
+	 		 i = 0;
+	 		 if(dato == '+')
+	 			estado = 1;
+	 		 break;
+	 	 case 1:
+	 		 if(dato == 'C')
+	 			 estado = 2;
+	 		 else
+	 			 estado = ESP8266_IDLE;
+	 		 break;
+	 	case 2:
+	 		 if(dato == 'W')
+	 			 estado = 3;
+	 		 else
+	 			 estado = ESP8266_IDLE;
+	 		 break;
+	 	case 3:
+	 		 if(dato == 'L')
+	  			 estado = 4;
+	  		 else
+	  			 estado = ESP8266_IDLE;
+	 		 break;
+	 	case 4:
+	 		 if(dato == 'A')
+	 			 estado = 5;
+	 		 else
+	 			 estado = ESP8266_IDLE;
+	  		 break;
 
-  	Chip_UART_ConfigData(LPC_UART3, UART_LCR_WLEN8 | UART_LCR_SBS_1BIT | UART_LCR_PARITY_DIS);
-  	//Configuracion de UART con: 8 bits de dato, 1 bit de stop, sin bit de paridad
+	 	case 5:
+	 		 if(dato == 'P')
+	 		 	 estado = 6;
+	 		 else
+	 		 	 estado = ESP8266_IDLE;
+	 		 break;
+	 	case 6:
+	 		 if(dato == ':')
+	 		 	 estado = 7;
+	 		 else
+				 estado = ESP8266_IDLE;
+	  		 break;
+	 	case 7:
+	 		 if(dato == '(')
+	 		 	 estado = 8;
+	 		 else
+	 			 estado = ESP8266_IDLE;
+	 		 break;
+	 	case 8: //Con/Sin Contraseña
+	 		//nets[j].pass = dato;
+	 		estado = 9;
+	 		break;
+	 	case 9:
+	 		if(dato == ',')
+	 			estado = 10;
+	 		else{
+	 			estado = ESP8266_IDLE;
+	 			//nets[j].pass = -1;
+	 		}
+	 		break;
+	 	case 10:
+	 		if(dato == '\"'){
+	 			estado = 11;
+	 			i = 0;
+	 		}
+	 		else{
+	 			estado = ESP8266_IDLE;
+	 			//nets[j].pass = -1;
+	 		}
+	 		break;
+	 	case 11: //Nombre de la red
+	 		if(dato == '\"'){
+	 			estado = ESP8266_IDLE;
+	 			j++;
+	 			i = 0;
+	 		}
+	 		else{
+	 			//nets[j].net[i] = dato;
+	 			i++;
+	 		}
+	 		break;
 
-  	// Cargo los parámetros en la estructura para la FIFO.
-  	// Por default: FIFO_DMAMode = DISABLE, FIFO_Level=UART_FIFO_TRGLEV0
-  	// FIFO_ResetRxBuf=ENABLE, FIFO_ResetTxBuf=ENABLE, FIFO_State=ENABLE
-  	Chip_UART_SetupFIFOS(LPC_UART3, UART_FCR_FIFO_EN | UART_FCR_RX_RS |
-  			UART_FCR_TX_RS | UART_FCR_TRG_LEV0);
+	 }
 
-  	// Habilito transmisión en pin TXD
-  	Chip_UART_TXEnable(LPC_UART3);
-
-  	Chip_UART_IntEnable(LPC_UART3, UART_IER_RBRINT);
-  	NVIC_EnableIRQ(UART3_IRQn);
-
-  	RingBuffer_Init(uart.rrb, rxbuf, 1, UART_BUF_SIZE);
-  	RingBuffer_Init(uart.trb, txbuf, 1, UART_BUF_SIZE);
-
-  	inicializado = 1;
-
-  }*/
-
- espCommand_e esp8266EvaluateCommand(char *cmd){
-
-	 espCommand_e command = ESP8266_DEFAULT;
-
-	 if(strcmp("RST", cmd) == 0)
-		 command = ESP8266_RESET;
-	 else if(strcmp("CWMODE_CUR", cmd) == 0)
-		 command = ESP8266_MODE;
-	 else if(strcmp("CWLAP", cmd) == 0)
-		 command = ESP8266_NETWORKS;
-	 else if(strcmp("CIFSR", cmd) == 0)
-		 command = ESP8266_IP;
-
-	 return command;
+	 return rv;
 
  }
 
- int esp8266GetIP(char *ip, char dato){
+ void connectionToAccessPoint(espAnswer data){
+
+	 char sendCommand[100] = {0};
+
+	 sprintf(sendCommand, "AT+CWJAP=\"%s\",\"%s\"\r\n", data.net, data.pass);
+	 esp8266Command(sendCommand);
+
+ }
+
+ int esp8266GetStationIP(char *ip, char dato){
 
 	 static int estado = ESP8266_IDLE;
 	 static int j = 0;
@@ -182,230 +235,6 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 
  }
 
- espCommand_e esp8266DetectCommand(char dato){
-
-	 static int estado = ESP8266_IDLE;
-	 espCommand_e cmd = ESP8266_DEFAULT;
-	 static char command[15];
-	 static int i = 0;
-
-	 switch(estado){
-
-	  	 case ESP8266_IDLE:
-	  		 if(dato == '+'){
-	  			 estado = ESP8266_INICIO_COMANDO;
-	  			 for(i=0;i<15;i++){
-	  				 command[i] = 0;
-	  			 }
-	  			 i = 0;
-	  		 }
-	  		 break;
-
-	  	 case ESP8266_INICIO_COMANDO:
-	 	 	 if(dato == '\r' || dato == '=' || dato == '?'){
-	 	 		i = 0;
-	 	 		estado = ESP8266_IDLE;
-	 	 		cmd = esp8266EvaluateCommand(command);
-	 	 		break;
-	 	 	 }
-	 	 	 command[i] = dato;
-	 	 	 i++;
-	 	 	 break;
-
-	  	 default:
-	  		 estado = ESP8266_IDLE;
-	  		 break;
-
-	 }
-
-	 return cmd;
-
- }
-
-  void esp8266SeparateResponse(char dato, char *rsp, char *command, espCommand_e *cmd, int len){
-
-	 static int i = 0;
-	 static int j = 0;
-	 static int estado = ESP8266_IDLE;
-
-	 j++;
-
-	 switch(estado){
-
-	 	 case ESP8266_IDLE:
-	 		 i = 0;
-	 		 if(dato == '+')
-	 			 estado = ESP8266_INICIO_COMANDO;
-	 		 break;
-
-	 	 case ESP8266_INICIO_COMANDO:
-	 		 if(dato == '\r'){
-	 			*cmd = esp8266EvaluateCommand(command);
-	 			i = 0;
-	 			estado = ESP8266_WAIT_ANSWER;
-	 			break;
-	 		 }
-	 		 (command[i]) = dato;
-	 		 i++;
-	 		 break;
-
-	 	 case ESP8266_WAIT_ANSWER:
-	 		 if(dato != '\n' && dato != '\r'){
-	 			rsp[i] = dato;
-	 			i++;
-	 			estado = ESP8266_ANSWER;
-	 		 }
-	 		 break;
-
-	 	 case ESP8266_ANSWER:
-	 		 if(j >= len){
-	 			estado = ESP8266_IDLE;
-	 			j = 0;
-	 		 }
-	 		 else{
-	 			rsp[i] = dato;
-	 			i++;
-	 		 }
-	 		 break;
-
-	 	 default:
-	 		 estado = ESP8266_IDLE;
-	 		 break;
-
-	 }
-
- }
-
- espStatus_e esp8266ProcessResponse(char dato, espCommand_e cmd){
-
-	 espStatus_e rv = ESP8266_NO_ANSWER;
-	 static int i = 0;
-	 static char rsp[BUF_LEN] = {0};
-
-	 switch(cmd){
-
-	 	 case ESP8266_RESET:
-	 	 case ESP8266_MODE:
-	 		 if(i < BUF_LEN)
-	 			 rsp[i++] = dato;
-	 		 else
-	 			 i=0;
-
-	 		rv = esp8266ValidateResponse(rsp);
-
-	 		if(rv == ESP8266_OK)
-	 			i = 0;
-
-	 	 case ESP8266_IP:
-	 		 break;
-
-	 	 case ESP8266_NETWORKS:
-	 		 rv = procesarRedesDisponibles(dato);
-	 		 break;
-
-	 }
-
-	 return rv;
-
- }
-
- espStatus_e procesarRedesDisponibles(char dato){
-
-	 static int estado = ESP8266_IDLE;
-	 static int i = 0;
-	 static int j = 0;
-	 static int password = -1;
-	 espStatus_e rv = ESP8266_TIMEOUT;
-
-	 switch(estado){
-	 	 case ESP8266_IDLE:
-	 		 i = 0;
-	 		 if(dato == '+')
-	 			estado = 1;
-	 		 break;
-	 	 case 1:
-	 		 if(dato == 'C')
-	 			 estado = 2;
-	 		 else
-	 			 estado = ESP8266_IDLE;
-	 		 break;
-	 	case 2:
-	 		 if(dato == 'W')
-	 			 estado = 3;
-	 		 else
-	 			 estado = ESP8266_IDLE;
-	 		 break;
-	 	case 3:
-	 		 if(dato == 'L')
-	  			 estado = 4;
-	  		 else
-	  			 estado = ESP8266_IDLE;
-	 		 break;
-	 	case 4:
-	 		 if(dato == 'A')
-	 			 estado = 5;
-	 		 else
-	 			 estado = ESP8266_IDLE;
-	  		 break;
-
-	 	case 5:
-	 		 if(dato == 'P')
-	 		 	 estado = 6;
-	 		 else
-	 		 	 estado = ESP8266_IDLE;
-	 		 break;
-	 	case 6:
-	 		 if(dato == ':')
-	 		 	 estado = 7;
-	 		 else
-				 estado = ESP8266_IDLE;
-	  		 break;
-	 	case 7:
-	 		 if(dato == '(')
-	 		 	 estado = 8;
-	 		 else
-	 			 estado = ESP8266_IDLE;
-	 		 break;
-	 	case 8: //Con/Sin Contraseña
-	 		nets[j].pass = dato;
-	 		estado = 9;
-	 		break;
-	 	case 9:
-	 		if(dato == ',')
-	 			estado = 10;
-	 		else{
-	 			estado = ESP8266_IDLE;
-	 			nets[j].pass = -1;
-	 		}
-	 		break;
-	 	case 10:
-	 		if(dato == '\"'){
-	 			estado = 11;
-	 			i = 0;
-	 		}
-	 		else{
-	 			estado = ESP8266_IDLE;
-	 			nets[j].pass = -1;
-	 		}
-	 		break;
-	 	case 11: //Nombre de la red
-	 		if(dato == '\"'){
-	 			estado = ESP8266_IDLE;
-	 			j++;
-	 			i = 0;
-	 		}
-	 		else{
-	 			nets[j].net[i] = dato;
-	 			i++;
-	 		}
-	 		break;
-
-	 }
-
-	 return rv;
-
- }
-
  espStatus_e esp8266ValidateResponse(char* rsp){
 
 	 espStatus_e rv = ESP8266_NO_ANSWER;
@@ -427,6 +256,12 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 	 else if(strstr(rsp, "CONNECT")){
 		 rv = ESP8266_DEVICE_CONNECTED;
 	 }
+	 else if(strstr(rsp, "No AP\r\n")){
+		 rv = ESP8266_NO_AP;
+	 }
+	 else if(strstr(rsp, "+CWJAP:")){
+		 rv = ESP8266_AP;
+	 }
 
 
 	 return rv;
@@ -437,8 +272,6 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 
 	 int i;
 	 int len = strlen(cmd);
-
-	 //Chip_UART_SendRB(uart.uart, uart.trb, cmd, len);
 
 	 //Chip_UART_IntEnable(LPC_UART3, UART_IER_THREINT);
 	 //Chip_UART_IntDisable(LPC_UART3, UART_IER_RBRINT);
@@ -460,45 +293,319 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 
  }
 
- espStatus_e esp8266Init(espMode_e m)
- {
-     int rv;
-
-     rv = esp8266Command("AT+RST\r\n");
-     if (rv == ESP8266_OK) {
-         rv = esp8266Command("");
-         if (rv == ESP8266_READY) {
-             char str[100];
-             sprintf(str, "AT+CWMODE=%u\r\n", m);
-             rv = esp8266Command(str);
-         }
-     }
-     return rv;
- }
-
- espStatus_e esp8266ConnectToAP(char * ssid, char * pw)
- {
-     char str[120];
-
-     sprintf(str, "AT+CWJAP=\"%s\",\"%s\"\r\n", ssid, pw);
-
-     return esp8266Command(str);
- }
-
- espStatus_e esp8266StartUDP(char * url, uint16_t port, uint16_t localport)
- {
-     char str[100];
-
-     sprintf(str, "AT+CIPSTART=\"UDP\",\"%s\",%u,%u,2\r\n", url, port, localport);
-
-     return esp8266Command(str);
- }
-
- int esp8266ProcessConnection(char dato, int*id){
+ int esp8266JoinAccessPoint(char dato, espAnswer *response){
 
 	 static int estado = ESP8266_IDLE;
-	 static char bytes[10] = {0};
 	 static int i = 0;
+	 static int j = 0;
+
+	 switch(estado){
+
+		 case ESP8266_IDLE:
+			 i = 0;
+			 j = 0;
+			 if(dato == 'G')
+				 estado = 1;
+			 break;
+		 case 1:
+			 if(dato == 'E')
+				 estado = 2;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		case 2:
+			 if(dato == 'T')
+				estado = 3;
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		case 3:
+			 if(dato == ' ')
+				estado = 4;
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		 case 4:
+			 if(dato == '/')
+				 estado = 5;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 5:
+			 if(dato == '?' || dato == ' ')
+				estado = 6;
+			 else if(dato == 'f'){
+				 //favicon
+				estado = ESP8266_IDLE;
+				return 0;
+			 }
+			 break;
+		case 6:
+			 if(dato == 'n')
+				estado = 7;
+			 else if(dato == 'H'){
+				 estado = ESP8266_IDLE;
+				 return 1;
+			 }
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		 case 7:
+			 if(dato == 'e')
+				 estado = 8;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		case 8:
+			 if(dato == 't')
+				estado = 9;
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		case 9:
+			 if(dato == '=')
+				estado = 10;
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		case 10:
+			 if(dato == '&'){
+				response->netLen = i;
+				estado = 11;
+			 }
+			 else{
+				response->net[i] = dato;
+				i++;
+			 }
+			 break;
+		case 11:
+			if(dato == 'p')
+				estado = 12;
+			else
+				estado = ESP8266_IDLE;
+			break;
+		 case 12:
+			 if(dato == 'a')
+				 estado = 13;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		case 13:
+			 if(dato == 's')
+				estado = 14;
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		case 14:
+			 if(dato == 's')
+				estado = 15;
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		case 15:
+			 if(dato == '=')
+				estado = 16;
+			 else
+				estado = ESP8266_IDLE;
+			 break;
+		case 16:
+			 if(dato == ' '){
+				 response->passLen = j;
+				 estado = ESP8266_IDLE;
+				 return 2;
+			 }
+			 else{
+				response->pass[j] = dato;
+				j++;
+			 }
+			 break;
+
+	 }
+
+	 return -1;
+
+ }
+
+ int esp8266SuccessfulConnection(char dato){
+
+	 static int estado = ESP8266_IDLE;
+
+	 switch(estado){
+
+		 case ESP8266_IDLE:
+			 if(dato == 'W')
+				 estado = 1;
+			 break;
+		 case 1:
+			 if(dato == 'I')
+				 estado = 2;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 2:
+			 if(dato == 'F')
+				 estado = 3;
+			else
+				 estado = ESP8266_IDLE;
+			break;
+		 case 3:
+			 if(dato == 'I')
+				 estado = 4;
+			else
+				 estado = ESP8266_IDLE;
+			break;
+		 case 4:
+			 if(dato == ' ')
+				 estado = 5;
+			else
+				 estado = ESP8266_IDLE;
+			break;
+		 case 5:
+			 if(dato == 'G')
+				 estado = 6;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 6:
+			 if(dato == 'O')
+				 estado = 7;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 7:
+			 if(dato == 'T')
+				 estado = 8;
+			else
+				 estado = ESP8266_IDLE;
+			break;
+		 case 8:
+			 if(dato == ' ')
+				 estado = 9;
+			else
+				 estado = ESP8266_IDLE;
+			break;
+		 case 9:
+			 if(dato == 'I')
+				 estado = 10;
+			else
+				 estado = ESP8266_IDLE;
+			break;
+		 case 10:
+			 if(dato == 'P')
+				 estado = 11;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 11:
+			 if(dato == '\r')
+				 estado = 12;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 12:
+			 if(dato == '\n')
+				 estado = 13;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 13:
+			 if(dato == '\r')
+				 estado = 14;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 14:
+			 if(dato == '\n')
+				 estado = 15;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+  		 case 15:
+			 if(dato == 'O')
+				 estado = 16;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 16:
+			 if(dato == 'K')
+				 estado = 17;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 17:
+			 if(dato == '\r')
+				 estado = 18;
+			 else
+				 estado = ESP8266_IDLE;
+			 break;
+		 case 18:
+			 if(dato == '\n'){
+				 estado = ESP8266_IDLE;
+				 return 1;
+			 }
+			 break;
+
+	 }
+
+	 return -1;
+ }
+
+ int esp8266DataSent(char dato){
+
+	 static int estado = ESP8266_IDLE;
+
+	 switch(estado){
+
+	 	 case ESP8266_IDLE:
+	 		 if(dato == 'S')
+	 			 estado = 1;
+	 		 break;
+	 	 case 1:
+	 		 if(dato == 'E')
+	 			 estado = 2;
+	 		 else
+	 			 estado = ESP8266_IDLE;
+	 		 break;
+	 	 case 2:
+	 		 if(dato == 'N')
+	 			 estado = 3;
+	 		else
+				 estado = ESP8266_IDLE;
+			break;
+	 	 case 3:
+	 		 if(dato == 'D')
+	 			 estado = 4;
+	 		else
+				 estado = ESP8266_IDLE;
+			break;
+	 	 case 4:
+	 		 if(dato == ' ')
+	 			 estado = 5;
+	 		else
+				 estado = ESP8266_IDLE;
+			break;
+	 	 case 5:
+	 		 if(dato == 'O')
+	 			 estado = 6;
+	 		 else
+	 			 estado = ESP8266_IDLE;
+	 		 break;
+	 	 case 6:
+	 		 if(dato == 'K'){
+	 			 estado = ESP8266_IDLE;
+	 			 return 1;
+	 		 }
+	 		 break;
+
+	 }
+
+	 return -1;
+
+ }
+
+ void esp8266ProcessConnection(char dato, int*id){
+
+	 static int estado = ESP8266_IDLE;
 
 	 switch(estado){
 
@@ -532,28 +639,11 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 	 		 break;
 	 	case 5:
 	 		*id = atoi(dato);
-	 		estado = 6;
+	 		estado = ESP8266_IDLE;
 	 		break;
-	 	case 6:
-	 		if(dato == ',')
-	 			estado = 7;
-	 		else
-	 			estado = ESP8266_IDLE;
-	 		break;
-	 	case 7:
-	 		if(dato == ':'){
-	 			estado = ESP8266_IDLE;
-	 			i = 0;
-	 			return atoi(bytes);
-	 		}
-
-	 		else
-	 			bytes[i++] = dato;
-	 		break;
-
 	 }
 
-	 return -1;
+	 return;
  }
 
  void  UART3_IRQHandler(void)
@@ -581,7 +671,7 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 
 	 		//Tengo que leer la FIFO
 	 		//(saltó por disparo de RX)
-	 		for(i=0;i<14;i++)
+	 		for(i=0;i<8;i++)
 	 		{
 	 			//Verifico que la FIFO no este vacía
 	 			if(!((p->LSR)&LSR_RDR)) break;
@@ -598,7 +688,7 @@ uartData_t uart = {LPC_UART3, &(rrb), &(trb)};*/
 	 	case IIR_THRE:
 	 		//Interrupción por Transmisión,FIFO de TX vacía, la intento llenar.
 
-	 		for(i=0;i<14;i++)
+	 		for(i=0;i<8;i++)
 	 		{
 	 			//Leo los datos pendientes en la cola de transmisión
 	 			ret = xQueueReceiveFromISR(colatx,&dato,&HigherPriorityTaskWoken);

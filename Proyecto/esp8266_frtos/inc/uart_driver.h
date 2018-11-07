@@ -8,11 +8,16 @@
 #ifndef SERIE_H_
 #define SERIE_H_
 
+<<<<<<< HEAD
 #include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/main.h"
 #include "../../PWMyTFT/inc/FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+=======
+#include "../inc/main.h"
+#include "../inc/functions.h"
+>>>>>>> b7cb94a6f629c8ab2dac3b471bedce9836c0ee3f
 
 #define IER_RBR		0x01
 #define IER_THRE	0x02
@@ -59,18 +64,15 @@
 #define RX_TRIG_8		(2<<6)
 #define RX_TRIG_14		(3<<6)
 
-int esp8266ProcessConnection(char dato, int*id);
-espCommand_e esp8266DetectCommand(char dato);
-int esp8266GetIP(char *ip, char dato);
-espCommand_e esp8266EvaluateCommand(char *cmd);
-espStatus_e esp8266ProcessResponse(char dato, espCommand_e cmd);
+void esp8266ProcessConnection(char dato, int*id);
+int esp8266GetStationIP(char *ip, char dato);
+int esp8266JoinAccessPoint(char dato, espAnswer* response);
+int esp8266DataSent(char dato);
 espStatus_e procesarRedesDisponibles(char dato);
-void esp8266SeparateResponse(char dato, char *rsp, char *command, espCommand_e *cmd, int len);
 espStatus_e esp8266ValidateResponse(char* rsp);
 espStatus_e esp8266Command(char* cmd);
-espStatus_e esp8266Init(espMode_e m);
-espStatus_e esp8266ConnectToAP(char * ssid, char * pw);
-espStatus_e esp8266StartUDP(char * url, uint16_t port, uint16_t localport);
+void connectionToAccessPoint(espAnswer data);
+int esp8266SuccessfulConnection(char dato);
 void inicializarUART3 (void);
 
 
