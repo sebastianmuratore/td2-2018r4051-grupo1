@@ -5,8 +5,8 @@
  *      Author: sebas
  */
 
-#ifndef TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_INC_PWM_H_
-#define TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_INC_PWM_H_
+#ifndef TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_PWM_H_
+#define TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_PWM_H_
 
 
 
@@ -39,4 +39,4 @@ void init_PWM 			(	void	);
 void init_timers		(	void	);
 void init_pinesPWM 		(	void	);
 
-#endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_INC_PWM_H_ */
+#endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_PWM_H_ */

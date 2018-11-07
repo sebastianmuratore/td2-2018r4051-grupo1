@@ -1,7 +1,7 @@
+#include "../../PWMyTFT/inc/FreeRTOS.h"
 #include "OneWireFunctions.h"
 #include "board.h"
 #include "FreeRTOSConfig.h"
-#include "FreeRTOS.h"
 #include "task.h"
 
 void xTemperatureTask (void *pvParameters)

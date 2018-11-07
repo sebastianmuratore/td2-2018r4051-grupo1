@@ -38,6 +38,17 @@
  ** @{ */
 
 /*==================[inclusions]=============================================*/
+#include "../inc/FreeRTOSConfig.h"
+#include "../inc/uart_driver.h"
+#include "../inc/functions.h"
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 
 /*==================[cplusplus]==============================================*/
 
@@ -45,63 +56,14 @@
 extern "C" {
 #endif
 
-/*==================[macros]=================================================*/
-
-/*==================[typedef]================================================*/
 
 /*==================[external data declaration]==============================*/
-
-typedef enum
-{
-	ESP8266_NO_ANSWER			= -4,
-    ESP8266_BUF_FULL    		= -3,
-    ESP8266_TIMEOUT     		= -2,
-    ESP8266_ERROR       		= -1,
-    ESP8266_OK          		=  0,
-    ESP8266_NO_CHANGE   		=  1,
-    ESP8266_READY       	  	=  2,
-	ESP8266_DEVICE_CONNECTED  	=  3
-}espStatus_e;
-
-typedef enum
-{
-	ESP8266_IDLE			= 0,
-    ESP8266_INICIO_COMANDO  = 1,
-    ESP8266_FIN_COMANDO     = 2,
-    ESP8266_WAIT_ANSWER  	= 3,
-    ESP8266_ANSWER   		= 4
-}espMdeE;
-
-typedef enum
-{
-    ESP8266_STATION     = 1,
-    ESP8266_AP          = 2,
-    ESP8266_AP_STATION  = 3
-}espMode_e;
-
-typedef enum
-{
-	ESP8266_DEFAULT		= 0,
-	ESP8266_RESET		= 1,
-    ESP8266_MODE		= 2,
-	ESP8266_NETWORKS	= 3,
-	ESP8266_IP			= 4
-}espCommand_e;
-
-typedef struct
-{
-	char pass;
-	char net[100];
-}espNetworks;
 
 /*==================[external functions declaration]=========================*/
 
 /** @brief main function
  * @return main function should never return
  */
-int main(void);
-void initHardware(void);
-void inicializarPulsadores(void);
 
 /*==================[cplusplus]==============================================*/
 

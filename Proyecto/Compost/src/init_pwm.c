@@ -4,17 +4,7 @@
  *  Created on: 23 de ago. de 2018
  *      Author: sebas
  */
-#include "../../pwm_frtos/inc/main.h"
-
-
-void initHardware(void)
-{
-    SystemCoreClockUpdate();
-    SysTick_Config(SystemCoreClock/1000);
-    Board_Init();
-    init_PWM();
-
-}
+#include "..//inc/main.h"
 
 void init_PWM ()
 {

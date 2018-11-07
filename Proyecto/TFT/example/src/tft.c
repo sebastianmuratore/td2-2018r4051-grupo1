@@ -46,14 +46,14 @@ int main(void)
 {
 	SystemCoreClockUpdate();
 	Board_Init();
-	uint32_t data;
 
+	Chip_GPIO_Init(LPC_GPIO);
+	Chip_IOCON_Init(LPC_IOCON);
 	Chip_SystemInit();
 
-	//init_SPI();
 	init_pinesLCD();
+
 	ili9341_Init();
-<<<<<<< HEAD:Proyecto/TFT/example/src/tft.c
 	TFT_setColor(255,255,0);
 	TFT_fillRect(0,0,220,300);
 
@@ -61,17 +61,6 @@ int main(void)
 	TFT_setColor(255,255,255);
 	TFT_DrawTextAllFontsV2(50,50,"Estocasticos",arial_italic);
 	TFT_setColor(255,0,0);
-=======
-
-
-	//ili9341_WriteCommand(LCD_SWRESET);
-	data = ili9341_ReadData( LCD_RDDCOLMOD   ,2);
-	ili9341_WriteCommand(LCD_DINVON );
-
-	setColor(0,0,255);
-	fillRect(0,0,40,40);
-
->>>>>>> b7cb94a6f629c8ab2dac3b471bedce9836c0ee3f:Proyecto/TFT/example/src/spi.c
 	while (1)
 	{
 

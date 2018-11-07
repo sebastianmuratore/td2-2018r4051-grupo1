@@ -72,8 +72,7 @@
  */
 #include <stddef.h>
 
-#include "../../pwm_frtos/inc/FreeRTOSConfig.h"
-/* Basic FreeRTOS definitions. */
+#include "../inc/FreeRTOSConfig.h"
 #include "projdefs.h"
 
 /* Application specific configuration options. */

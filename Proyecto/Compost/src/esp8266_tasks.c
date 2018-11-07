@@ -1,11 +1,17 @@
+/*
+ * esp8266_tasks.c
+ *
+ *  Created on: 7 de nov. de 2018
+ *      Author: sebas
+ */
 #include "../inc/main.h"
 
-xQueueHandle colarx;
-xQueueHandle colatx;
-xQueueHandle colaConexion;
+extern xQueueHandle colarx;
+extern xQueueHandle colatx;
+extern xQueueHandle colaConexion;
 
-xTaskHandle vUartReadHandle;
-xTaskHandle vProcessConectionHandle;
+extern xTaskHandle vUartReadHandle;
+extern xTaskHandle vProcessConectionHandle;
 
 int flag = 0;
 char resp[BUFFERSIZE] = {0};
@@ -38,11 +44,11 @@ char formHTML[HTML_FORM_SIZE] = "<!doctype html><html lang=\"en\"><head><meta ch
 
 char connectionHTML[358] = {0};
 
-
 void vConfigEsp8266(void *parametros){
 
 	espStatus_e rv = ESP8266_NO_ANSWER;
 	static char respuesta[BUFFERSIZE] = {0};
+	char ip[20];
 	int i = 0;
 
 
@@ -81,9 +87,21 @@ void vConfigEsp8266(void *parametros){
 				resp[i] = respuesta[i];
 				if(rv == ESP8266_NO_AP){
 					mode = ACCESS_POINT_MODE;
+					strcpy(ip,"192.168.4.1");
 				}
 				else if(rv == ESP8266_AP){
 					mode = STATION_MODE;
+					esp8266Command("AT+CIFSR\r\n");
+					while(1)
+					{
+						if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE)
+						{
+							if(esp8266GetStationIP(ip, respuesta[i]) > 0)
+							{
+								break;
+							}
+						}
+					}
 				}
 
 				if(rv == ESP8266_OK)
@@ -100,6 +118,7 @@ void vConfigEsp8266(void *parametros){
 		inicializarVector(BUFFERSIZE, respuesta);
 
 
+		//mostrar en display ip
 		vTaskResume(vUartReadHandle);
 		vTaskResume(vProcessConectionHandle);
 		vTaskSuspend(NULL);
@@ -299,30 +318,3 @@ void vUartRead(void *parametros)
 
 }
 
-int main(void)
-{
-	initHardware();
-
-	colarx = xQueueCreate(BUFFERSIZE, sizeof(char));
-	colatx = xQueueCreate(BUFFERSIZE, sizeof(char));
-	colaConexion = xQueueCreate(10, sizeof(espAnswer));
-
-	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 5*configMINIMAL_STACK_SIZE,
-					0, tskIDLE_PRIORITY+2, &vUartReadHandle );
-
-	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 5*configMINIMAL_STACK_SIZE,
-					0, tskIDLE_PRIORITY+1, &vProcessConectionHandle );
-
-
-	xTaskCreate(vConfigEsp8266, (const unsigned char * ) "Config esp8266", 5*configMINIMAL_STACK_SIZE,
-					0, tskIDLE_PRIORITY+3, 0 );
-
-	vTaskSuspend(vProcessConectionHandle);
-	vTaskSuspend(vUartReadHandle);
-
-	vTaskStartScheduler();
-
-	while (1);
-}
