@@ -3,11 +3,11 @@
 #include "string.h"
 #include "math.h"
 
-#include "../../PWMyTFT/inc/FW_Timer.h"
-#include "../../PWMyTFT/inc/FW-Graficos.h"
-#include "../../PWMyTFT/inc/FW-ili9341.h"
-#include "../../PWMyTFT/inc/General.h"
-#include "../../PWMyTFT/inc/SPI.h"
+#include "../inc/FW_Timer.h"
+#include "../inc/FW-Graficos.h"
+#include "../inc/FW-ili9341.h"
+#include "../inc/General.h"
+#include "../inc/SPI.h"
 
 /*------------------------------------------------------------------------------------------------------------------------
  * 							ENUMS
@@ -66,7 +66,7 @@ void 		initScreen(Rectangle* rect);
 #define		PIN_CSX		PIN_05
 #define		PIN_WRX		PIN_07
 #define		PIN_RDX		PIN_08
-#define		PIN_D0		PIN_10
+#define		PIN_D0		PIN_21
 #define		PIN_D1		PIN_11
 #define		PIN_D2		PIN_12
 #define		PIN_D3		PIN_13
@@ -74,7 +74,7 @@ void 		initScreen(Rectangle* rect);
 #define		PIN_D5		PIN_15
 #define		PIN_D6		PIN_16
 #define		PIN_D7		PIN_17
-#define		PIN_RST		PIN_09
+#define		PIN_RST		PIN_20
 //MACROS
 
 #define  	TFT_PIXEL_WIDTH    239

@@ -4,7 +4,7 @@
  *  Created on: 6 de set. de 2018
  *      Author: sebas
  */
-#include "../../PWMyTFT/inc/tft.h"
+#include "../inc/tft.h"
 
 /*
 

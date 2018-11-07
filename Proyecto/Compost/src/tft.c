@@ -1,4 +1,4 @@
-#include "../../PWMyTFT/inc/main.h"
+#include "../inc/main.h"
 #include "Fonts.h"
 extern uint32_t color;
 
@@ -40,8 +40,6 @@ void DrawScreen(MENUES menu, Rectangle screen)
 				 TFT_DrawText(30,100,"Grupo 3\nBruno, Galazan, Gomez, Muratore",arial_italic,TFT_getColor(BLANCO));
 				 TFT_clearText(30,30,sizeof("PROYECTO"),arial_italic,background);
 				 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE	);
-
-
 				 break;
 
 			 case LOADING:
@@ -51,8 +49,6 @@ void DrawScreen(MENUES menu, Rectangle screen)
 				 TFT_DrawText(145,200,"Loading",arial_bold,TFT_getColor(BLANCO));
 				 for(i=0;i<3;i++)
 					 puntosSuspensivos(357, 200 , 0,0,0);
-
-
 				 break;
 
 			 case PANTALLA_PPAL:

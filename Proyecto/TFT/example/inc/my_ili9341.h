@@ -48,8 +48,47 @@
 
 #define ILI9341_ID                  0x9341
 
+/**
+  * @brief  ILI9341 Size
+  */
+#define  	ILI9341_LCD_PIXEL_WIDTH    239
+#define  	ILI9341_LCD_PIXEL_HEIGHT   319
 #define 	swap(type, i, j) {type t = i; i = j; j = t;}
+#define  	READ 						1
 
+
+#define		PIN_DCX		PIN_06
+#define		PIN_CSX		PIN_05
+#define		PIN_WRX		PIN_07
+#define		PIN_RDX		PIN_08
+#define		PIN_D0		PIN_09
+#define		PIN_D1		PIN_10
+#define		PIN_D2		PIN_11
+#define		PIN_D3		PIN_12
+#define		PIN_D4		PIN_13
+#define		PIN_D5		PIN_14
+#define		PIN_D6		PIN_15
+#define		PIN_D7		PIN_16
+#define		PIN_RST		PIN_17
+
+
+
+
+
+/**
+  * @brief  ILI9341 Timing
+  */
+/* Timing configuration  (Typical configuration from ILI9341 datasheet)
+  HSYNC=10 (9+1)
+  HBP=20 (29-10+1)
+  ActiveW=240 (269-20-10+1)
+  HFP=10 (279-240-20-10+1)
+
+  VSYNC=2 (1+1)
+  VBP=2 (3-2+1)
+  ActiveH=320 (323-2-2+1)
+  VFP=4 (327-320-2-2+1)
+*/
 #define  ILI9341_HSYNC            ((uint32_t)9)   /* Horizontal synchronization */
 #define  ILI9341_HBP              ((uint32_t)29)    /* Horizontal back porch      */
 #define  ILI9341_HFP              ((uint32_t)2)    /* Horizontal front porch     */
@@ -155,22 +194,35 @@
 
 #define PORTRAIT 0
 #define LANDSCAPE 1
+/**
+  * @}
+  */
 
-void     	ili9341_Init				(	void	);
-uint32_t 	ili9341_ReadData			(uint8_t RegValue, uint8_t ReadSize);
-void 		ili9341_WriteData			(uint8_t RegValue);
-void     	ili9341_DisplayOn			(	void	);
-void     	ili9341_DisplayOff			(	void	);
-void    	ili9341_WriteCommand		(uint8_t RegValue);
-void 		ili9341_WriteReg			(uint8_t Reg, uint8_t size);
-void 		ili9341_cargarDato			(uint8_t dato);
-void 		ili9341_disableWrite		(	void	);
-void 		ili9341_enableCommandWrite	(	void	);
-void 		ili9341_enableDataWrite		(	void	);
-void 		ili9341_write				(	void	);
-void		ili9341_Reset				(	void	);
+/** @defgroup ILI9341_Exported_Functions
+  * @{
+  */
+void     	ili9341_Init(void);
+//uint16_t ili9341_ReadID(void);
+void		LCD_IO_WriteData(uint8_t RegValue, uint8_t ReadSize);
+void 		LCD_IO_WriteReg		(	uint8_t LCD_Reg	, uint8_t size);
+uint32_t 	ili9341_ReadData(uint8_t RegValue, uint8_t ReadSize);
+void 		ili9341_WriteData(uint8_t RegValue);
+void     	ili9341_DisplayOn(void);
+void     	ili9341_DisplayOff(void);
+uint16_t 	ili9341_GetLcdPixelWidth(void);
+uint16_t 	ili9341_GetLcdPixelHeight(void);
+void		 LCD_Reset(void);
 
+void clrScr(void);
+void clrXY(void);
+void setXY(int x1, int y1, int x2, int y2);
+void _fast_fill_16(uint16_t dato, int pix);
+void setColor(uint8_t r, uint8_t g, uint8_t b);
+void fillRect(int x1, int y1, int x2, int y2);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MY_ILI9341_H_ */
 

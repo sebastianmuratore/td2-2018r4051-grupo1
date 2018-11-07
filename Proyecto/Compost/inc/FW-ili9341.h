@@ -44,7 +44,7 @@
  extern "C" {
 #endif
 
-#include "../../PWMyTFT/inc/General.h"
+#include "../inc/General.h"
 
 #define ILI9341_ID                  0x9341
 

@@ -8,7 +8,7 @@
 #ifndef TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TOUCH_H_
 #define TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TOUCH_H_
 
-#include "../../PWMyTFT/inc/General.h"
+#include "../inc/General.h"
 
 /*------------------------------------------------------------------------------------------------------------------------
  * 							MACROS

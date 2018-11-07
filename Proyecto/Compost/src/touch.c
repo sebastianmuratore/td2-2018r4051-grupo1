@@ -4,7 +4,7 @@
  *  Created on: 28 de set. de 2018
  *      Author: sebas
  */
-#include "../../PWMyTFT/inc/main.h"
+#include "../inc/main.h"
 
 
 void initTouch (	void	)

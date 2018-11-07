@@ -12,7 +12,7 @@
 /*                                              MACROS GRALES
  *
  *-------------------------------------------------------------------------------------------------------------------------------------------------------*/
-#include "../../PWMyTFT/inc/SPI.h"
+#include "../inc/SPI.h"
 
 #define 	HIGH			1
 #define 	LOW 			0
@@ -52,12 +52,12 @@
 #define		PIN_15		0,23
 #define		PIN_16		0,24
 #define		PIN_17 		0,25
-#define 	PIN_18		0,3
-#define		PIN_19		0,21
-#define		PIN_20		0,22
-#define		PIN_21		0,27
-#define		PIN_22		0,28
-#define		PIN_23		2,13
+#define 	PIN_18		0,26
+#define		PIN_19		1,30
+#define		PIN_20		1,31
+#define		PIN_21		0,2
+#define		PIN_22		0,3
+#define		PIN_23		0,21
 
 
 #endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_FREERTOS_INC_GENERAL_H_ */

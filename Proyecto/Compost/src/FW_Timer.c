@@ -1,4 +1,4 @@
-#include "../../PWMyTFT/inc/tft.h"
+#include "../inc/tft.h"
 
 uint32_t count = 0;
 

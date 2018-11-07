@@ -1,5 +1,5 @@
 
-#include "tft.h"
+#include "../inc/main.h"
 
 uint32_t color;
 
@@ -69,7 +69,7 @@ void ili9341_Init(void)
 	ili9341_WriteData(0x27);
 
 	ili9341_WriteReg(LCD_SLEEP_OUT,1);//Exit Sleep
-		TIMER_delay_ms(120);
+	vTaskDelay(120/portTICK_RATE_MS);
 
 	ili9341_WriteReg(LCD_DISPLAY_ON,1);    //Display on
 	ili9341_WriteReg(LCD_GRAM,1);
@@ -238,11 +238,13 @@ void    ili9341_WriteCommand(uint8_t RegValue)
 
 void ili9341_Reset(void) {
 	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_RST);
-	TIMER_delay_ms(5);
+	vTaskDelay(5/portTICK_RATE_MS);
+
 	Chip_GPIO_SetPinOutLow(LPC_GPIO,PIN_RST);
-	TIMER_delay_ms(15);
+	vTaskDelay(15/portTICK_RATE_MS);
+
 	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_RST);
-	TIMER_delay_ms(15);
+	vTaskDelay(15/portTICK_RATE_MS);
 
 	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_CSX);
 	Chip_GPIO_SetPinOutHigh(LPC_GPIO,PIN_WRX);

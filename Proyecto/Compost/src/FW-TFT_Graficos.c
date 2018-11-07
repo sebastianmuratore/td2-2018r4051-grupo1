@@ -1,5 +1,5 @@
-#include "../../PWMyTFT/inc/Fonts.h"
-#include "../../PWMyTFT/inc/tft.h"
+#include "../inc/Fonts.h"
+#include "../inc/tft.h"
 
 
 extern uint32_t color;

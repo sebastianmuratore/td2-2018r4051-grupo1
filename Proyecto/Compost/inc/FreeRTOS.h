@@ -72,7 +72,7 @@
  */
 #include <stddef.h>
 
-#include "../../PWMyTFT/inc/FreeRTOSConfig.h"
+#include "../inc/FreeRTOSConfig.h"
 #include "projdefs.h"
 
 /* Application specific configuration options. */
