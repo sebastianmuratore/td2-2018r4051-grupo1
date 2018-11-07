@@ -14,7 +14,7 @@
 #define FsADC1		1
 
 //Cola de mensajes
-xQueueHandle xQueue = NULL;
+xQueueHandle xQueueADC = NULL;
 
 /* Número de items que la cola puede almacenar */
 #define mainQUEUE_LENGTH	10
@@ -47,7 +47,9 @@ void ADC_IRQHandler(void)
 	Chip_ADC_ReadValue(LPC_ADC, ADC_CH1, &data);
 	porcentaje=100-((data*100)/4095);
 
-	xQueueSendFromISR(xQueue,&data, &HigherPriorityTaskWoken);
+	//xQueueSendFromISR(xQueueADC,&data, &HigherPriorityTaskWoken); 	//Pruebo mandando el dato crudo o el porcentaje
+	xQueueSendFromISR(xQueueADC,porcentaje, &HigherPriorityTaskWoken);
+
 	portEND_SWITCHING_ISR(HigherPriorityTaskWoken);
 	//Chip_ADC_Int_SetChannelCmd(LPC_ADC, ADC_CH1, DISABLE);
 
@@ -63,13 +65,24 @@ static void initHardware(void)
     Board_LED_Set(0, false);
 }
 
-void task(void * a)
+void ReadDataADC()
 {
-	static uint16_t dato;
+	static uint16_t porcHumedad;
+	xQueueReceive(xQueueADC, porcHumedad, portMAX_DELAY);
+}
+
+void vReadDataADC(void * a)
+{
+	//static uint16_t dato;
+
 	while (1)
 	{
 		Board_LED_Toggle(0);
-		xQueueReceive(xQueue, &dato, portMAX_DELAY);
+		ReadDataADC();									//Leo el dato, levantandolo de la cola
+
+		//Donde lo mando ahora?
+
+		//xQueueReceive(xQueueADC, &dato, portMAX_DELAY);
 		//Chip_ADC_Int_SetChannelCmd(LPC_ADC, ADC_CH1, ENABLE);
 		vTaskDelay(250/ portTICK_RATE_MS);
 	}
@@ -78,9 +91,9 @@ void task(void * a)
 int main(void)
 {
 	initHardware();
-	xTaskCreate(task, (const char *)"task", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
+	xTaskCreate(vReadDataADC, (const char *)"task", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
 
-	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint16_t ) );
+	xQueueADC = xQueueCreate( mainQUEUE_LENGTH, sizeof( uint16_t ) );
 
 	//Creo tarea y cola antes de inicializar Interrupciones
 	InitADC(FsADC1);
