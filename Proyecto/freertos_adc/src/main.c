@@ -1,8 +1,8 @@
 //Includes
 #include "../../freertos_adc/inc/main.h"
 #include "../../freertos_adc/inc/FreeRTOSConfig.h"
+#include "../../PWMyTFT/inc/FreeRTOS.h"
 #include "board.h"
-#include "FreeRTOS.h"
 #include "task.h"
 #include "task.h"
 #include "queue.h"

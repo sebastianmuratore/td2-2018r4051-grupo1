@@ -1,0 +1,13 @@
+/*
+
+ * Tasks.h
+ *
+ *  Created on: 25 de oct. de 2018
+ *      Author: sebas
+ */
+
+#ifndef TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TASKS_H_
+#define TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TASKS_H_
+
+
+#endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TASKS_H_ */

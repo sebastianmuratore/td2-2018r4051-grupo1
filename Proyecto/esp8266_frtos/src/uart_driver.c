@@ -1,6 +1,5 @@
 #include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/uart_driver.h"
 
-#include "../inc/FreeRTOS.h"
 #include "../../../modules/lpc1769/ciaa/inc/ciaaIO.h"
 #include "../../../modules/lpc1769/ciaa/inc/ciaaUART.h"
 #include "../../../modules/lpc1769/ciaa/inc/ciaaTick.h"
@@ -11,6 +10,7 @@
 #include <stdlib.h>
 
 #include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/main.h"
+#include "../../PWMyTFT/inc/FreeRTOS.h"
 
 
 

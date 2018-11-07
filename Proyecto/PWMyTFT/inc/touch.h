@@ -5,10 +5,10 @@
  *      Author: sebas
  */
 
-#ifndef TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_FRTOS_INC_TOUCH_H_
-#define TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_FRTOS_INC_TOUCH_H_
+#ifndef TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TOUCH_H_
+#define TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TOUCH_H_
 
-#include "General.h"
+#include "../../PWMyTFT/inc/General.h"
 
 /*------------------------------------------------------------------------------------------------------------------------
  * 							MACROS
@@ -42,4 +42,16 @@ void 		disablePinesReadX(	void	);
 void 		disablePinesReadY(	void	);
 
 
-#endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWM_FRTOS_INC_TOUCH_H_ */
+
+
+
+
+/*GND----------------D7 *
+ *
+ * Y=1300			Y=270
+ *
+ *
+ * GND---------------CD
+ *
+ */
+#endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_TOUCH_H_ */

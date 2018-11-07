@@ -4,7 +4,7 @@
  *  Created on: 23 de ago. de 2018
  *      Author: sebas
  */
-#include "../../pwm_frtos/inc/main.h"
+#include "../../PWMyTFT/inc/main.h"
 
 
 void initHardware(void)
@@ -13,6 +13,9 @@ void initHardware(void)
     SysTick_Config(SystemCoreClock/1000);
     Board_Init();
     init_PWM();
+    initTouch();
+    init_TFT();
+
 
 }
 

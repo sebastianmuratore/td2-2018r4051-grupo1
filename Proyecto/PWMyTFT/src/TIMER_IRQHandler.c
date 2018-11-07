@@ -4,7 +4,7 @@
  *  Created on: 23 de ago. de 2018
  *      Author: sebas
  */
-#include "../../pwm_frtos/inc/main.h"
+#include "../../PWMyTFT/inc/main.h"
 
 void TIMER1_IRQHandler(void)
 {

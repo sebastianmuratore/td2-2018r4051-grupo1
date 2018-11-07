@@ -31,6 +31,7 @@
  */
 
 #include "tft.h"
+#include "Fonts.h"
 /*****************************************************************************
  * Private types/enumerations/variables
  ****************************************************************************/
@@ -40,7 +41,6 @@ uint8_t spi_rx_buf[BUFFER_SIZE];
 SPI_CONFIG_FORMAT_T spi_format;
 SPI_DATA_SETUP_T spi_xf;
 uint8_t  spi_xfer_completed = 0;
-
 
 int main(void)
 {
@@ -54,14 +54,12 @@ int main(void)
 	init_pinesLCD();
 
 	ili9341_Init();
-
-//	data = ili9341_ReadData( LCD_RDDCOLMOD   ,2);
-
 	TFT_setColor(255,255,0);
-//	TFT_fillRect(0,0,220,300);
+	TFT_fillRect(0,0,220,300);
+
 	TFT_DrawRectangle(0,0,250,200,FALSE);
 	TFT_setColor(255,255,255);
-	TFT_DrawText(50,50,"Estocasticos",LCD_FONT_SIZE_LARGE);
+	TFT_DrawTextAllFontsV2(50,50,"Estocasticos",arial_italic);
 	TFT_setColor(255,0,0);
 	while (1)
 	{

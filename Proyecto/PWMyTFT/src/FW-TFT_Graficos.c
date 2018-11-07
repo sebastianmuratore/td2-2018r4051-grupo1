@@ -1,12 +1,21 @@
-#include "tft.h"
-#include "Fonts.h"
+#include "../../PWMyTFT/inc/Fonts.h"
+#include "../../PWMyTFT/inc/tft.h"
 
 
 extern uint32_t color;
 uint16_t _borderWidth = 2;
 extern char orientacion;
 
+uint32_t TFT_getColor (uint8_t r, uint8_t g, uint8_t b)
+{
+	uint16_t rr,gg,bb;
+	rr = (r&248)<<8;
+	gg = ((g&252)<<3);
+	bb = (b>>3);
 
+//	return (((g & 28) << 3 | b >> 3) | ((r & 248) | g >> 5) << 8); // <-- En datos serie se manda 5b R + 5b G + 6b B
+	return ( rr | gg | bb );
+}
 void TFT_setColor(uint8_t r, uint8_t g, uint8_t b)
 {
 
@@ -15,7 +24,7 @@ void TFT_setColor(uint8_t r, uint8_t g, uint8_t b)
 	rr = (r&248)<<8;
 	gg = ((g&252)<<3);
 	bb = (b>>3);
-
+	//color = ((g & 28) << 3 | b >> 3) | ((r & 248) | g >> 5) << 8;
 	color = rr | gg | bb ; // <-- En datos serie se manda 5b R + 5b G + 6b B
 }
 
@@ -49,6 +58,18 @@ void TFT_clrScr()
 	TFT_fillArea(0,((TFT_PIXEL_WIDTH+1)*(TFT_PIXEL_HEIGHT+1)));
 }
 
+
+void TFT_clearText(uint16_t x, uint16_t y,uint8_t size , char* font, uint32_t background)
+{
+	uint8_t font_width = font[0];
+	uint8_t font_heigth = font[1];
+	uint16_t w = size*font_width;
+	uint16_t h = font_heigth;
+	color = background;
+
+	TFT_DrawRectangle(x,y,w,h,TRUE);
+
+}
 
 
 void TFT_clrXY()
@@ -203,7 +224,8 @@ void TFT_DrawCircle(uint16_t cx, uint16_t cy, uint16_t r)
 }
 
 
-void TFT_DrawChar(uint16_t x, uint16_t y, char c, uint8_t font_size)
+
+void TFT_DrawChar(uint16_t x, uint16_t y, char c, char* font)
 {
 
 	/* Dibuja un caracter en la posicion indicada
@@ -213,142 +235,7 @@ void TFT_DrawChar(uint16_t x, uint16_t y, char c, uint8_t font_size)
 	 * font_size = Tamaño de la fuente
 	 */
 
-	char *letra;
-	uint8_t font_width = 0;
-	uint8_t font_heigth = 0;
-	uint8_t i,j;
-	uint16_t letra_nueva;
 
-	//validacion de caracteres
-	if(c < 32 || c > 126) return;
-
-
-
-	switch(font_size) {
-		case LCD_FONT_SIZE_SMALL:
-			letra = smallFonts[c-32];
-			font_width = 8;
-			font_heigth = 12;
-			break;
-		case LCD_FONT_SIZE_LARGE:
-			letra = largeFonts[c-32];
-			font_width = 16;
-			font_heigth = 16;
-			break;
-		default:
-			letra = smallFonts[c-32];
-			font_width = 8;
-			font_heigth = 12;
-			break;
-	}
-
-//Recorre todos los pixeles
-	for(i = 0; i < font_width; i++)
-	{
-		for( j = 0; j < font_heigth; j++)
-		{
-			letra_nueva = 0;
-			switch(font_size)
-			{//nos quedamos con un renglon
-				case LCD_FONT_SIZE_SMALL:
-					letra_nueva = letra[j];
-					break;
-				case LCD_FONT_SIZE_LARGE:
-					letra_nueva = (letra[j*2] << 8) | letra[j*2+1]; //el tamaño es 16
-					break;
-				default:
-					letra_nueva = letra[j];
-					break;
-			}
-
-			//Un renglon es, por ejemplo: 0x20 = 0 0 1 0 0 0 0 0 en el caso de small font (width = 8 )
-			//Se recorre bit por bit ese renglon, y si hay un 1 se chequea que este dentro de la pantalla y se lo
-			//dibuja, desplazado a partir del punto x especificado como parametro
-			if((letra_nueva >> ((font_width - 1) - i)) & 0x01)
-			{
-				if(//verifica que este dentro de la pantalla
-						x + i >= 0 &&
-						x + i < TFT_GetLcdPixelWidth() &&
-						y + j >= 0 &&
-						y + j < TFT_GetLcdPixelHeight()
-				) TFT_DrawPoint(x + i, y + j);
-			}
-		}
-	}
-}
-
-void TFT_DrawCharAll(uint16_t x, uint16_t y, char c, char font[][32])
-{
-
-	/* Dibuja un caracter en la posicion indicada
-	 * x = posicion en X
-	 * y = posicion en Y
-	 * c = Caracter a dibujar
-	 * font_size = Tamaño de la fuente
-	 */
-
-	char *letra;
-	uint8_t i,j;
-	uint16_t letra_nueva;
-
-	uint8_t  font_width 		= font[0][0];
-	uint8_t  font_heigth 		= font[0][1];
-	uint16_t inicio_ascii 		= font[0][2];
-	uint16_t cant_caracteres	= font[0][3];
-	uint16_t fin_ascii 			= inicio_ascii + cant_caracteres;
-	uint8_t inicio 				= inicio_ascii - 1 ;
-	uint8_t fin 				= fin_ascii - 1;
-
-	//validacion de caracteres
-	if(c < inicio || c > fin) return;
-	letra = font[c - inicio ];
-
-//Recorre todos los pixeles
-	for(i = 0; i < font_width; i++)
-	{
-		for( j = 0; j < font_heigth; j++)
-		{
-			letra_nueva = 0;
-			switch(font_width)
-			{//nos quedamos con un renglon
-				case LCD_FONT_SIZE_SMALL:
-					letra_nueva = letra[j];
-					break;
-				case LCD_FONT_SIZE_LARGE:
-					letra_nueva = (letra[j*2] << 8) | letra[j*2+1]; //el tamaño es 16
-					break;
-				default:
-					letra_nueva = letra[j];
-					break;
-			}
-
-			//Un renglon es, por ejemplo: 0x20 = 0 0 1 0 0 0 0 0 en el caso de small font (width = 8 )
-			//Se recorre bit por bit ese renglon, y si hay un 1 se chequea que este dentro de la pantalla y se lo
-			//dibuja, desplazado a partir del punto x especificado como parametro
-			if((letra_nueva >> ((font_width - 1) - i)) & 0x01)
-			{
-				if(//verifica que este dentro de la pantalla
-						x + i >= 0 &&
-						x + i < TFT_GetLcdPixelWidth() &&
-						y + j >= 0 &&
-						y + j < TFT_GetLcdPixelHeight()
-				) TFT_DrawPoint(x + i, y + j);
-			}
-		}
-	}
-}
-
-void TFT_DrawCharAllV2(uint16_t x, uint16_t y, char c, char* font)
-{
-
-	/* Dibuja un caracter en la posicion indicada
-	 * x = posicion en X
-	 * y = posicion en Y
-	 * c = Caracter a dibujar
-	 * font_size = Tamaño de la fuente
-	 */
-
-	char *letra;
 	uint8_t i,j;
 	uint32_t letra_nueva;
 
@@ -356,7 +243,6 @@ void TFT_DrawCharAllV2(uint16_t x, uint16_t y, char c, char* font)
 	uint8_t  font_heigth 		= font[1];
 	uint16_t inicio_ascii 		= font[2];
 	uint16_t cant_caracteres	= font[3];
-	uint16_t fin_ascii 			= inicio_ascii + cant_caracteres;
 
 	//validacion de caracteres
 	if(c < CARACTER(0,font_heigth ) || c > CARACTER(cant_caracteres,font_heigth )) return;
@@ -405,64 +291,38 @@ void TFT_SetBorderWidth(uint8_t width)
 	if(width == 0) width = 1;
 	_borderWidth = width - 1;
 }
-void TFT_DrawTextAllFonts(uint16_t x, uint16_t y, char* str , char font[][32])
+
+
+void TFT_DrawText(uint16_t x, uint16_t y, char* str , char* font, uint32_t textColor)
 {
 	uint8_t font_width = 0;
-
+	uint8_t font_heigth = 0;
 	uint16_t len = strlen(str);
+	uint16_t j =0;
+	//if(orientacion == LANDSCAPE)
+		//swap(int,x,y);
+	uint32_t colorAnt = color; //guardo  el color anterior
+	color = textColor;
 
-	font_width = font[0][0];
+	font_width  = font[0];
+	font_heigth = font[1];
 
 	for(uint16_t i = 0; i < len; i++) {
 		if(str[i] == 0x0) break;
-		TFT_DrawCharAll(x + (i * (font_width - 1)), y, str[i], font);
+		if(x + (i-j) * font_width > ( TFT_GetLcdPixelWidth()-1 ) || str[i] == '\n')//Chequea si la letra entra en la pantalla
+		{
+			j = (str[i] == '\n') ? (i+1): i ;
+			y = y + RENGLON(1,font_heigth);
+		}//Si no entra la escribe en el renglon de abajo, en la posicion enviada en X
+
+		if(str[i] != '\n')
+			TFT_DrawChar(x + ((i-j) * (font_width - 1)), y, str[i], font);
+
 	}
 
+	color = colorAnt;
 }
 
-void TFT_DrawTextAllFontsV2(uint16_t x, uint16_t y, char* str , char* font)
-{
-	uint8_t font_width = 0;
-
-	uint16_t len = strlen(str);
-
-	font_width = font[0];
-
-	for(uint16_t i = 0; i < len; i++) {
-		if(str[i] == 0x0) break;
-		TFT_DrawCharAllV2(x + (i * (font_width - 1)), y, str[i], font);
-	}
-
-}
-
-
-void TFT_DrawText(uint16_t x, uint16_t y, char *str, uint8_t font_size)
-{
-	/* Dibuja un string en la pantalla
-	 *  x = posicion inicial en X
-	 *  y = posicion inicial en y
-	 *  str = string
-	 *  font_size = tamaño de la fuente
-	 */
-	uint8_t font_width = 0;
-	uint16_t len = strlen(str);
-	switch(font_size) {
-		case LCD_FONT_SIZE_SMALL:
-			font_width = 8;
-			break;
-		case LCD_FONT_SIZE_LARGE:
-			font_width = 16;
-			break;
-		default:
-			font_width = 8;
-			break;
-	}
-
-	for(uint16_t i = 0; i < len; i++) {
-		if(str[i] == 0x0) break;
-		TFT_DrawChar(x + (i * (font_width - 1)), y, str[i], font_size);
-	}
-}
 
 uint16_t TFT_GetLcdPixelWidth(void)
 {

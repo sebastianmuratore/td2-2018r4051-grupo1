@@ -9,7 +9,7 @@
 #define SERIE_H_
 
 #include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/main.h"
-#include "FreeRTOS.h"
+#include "../../PWMyTFT/inc/FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
