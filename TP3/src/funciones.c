@@ -98,7 +98,7 @@ void validarAccion(char accion, int velocidad){
 			break;
 
 		case VELOCIDAD_INCORRECTA:
-			printf("Velocidad incorrecta");
+			cambioVelocidad(VELOCIDAD_1);
 			break;
 
 	}

@@ -1,21 +1,21 @@
-#include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/main.h"
-
-#include <string.h>
-
-#include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/FreeRTOSConfig.h"
-#include "../../../tps/td2-2018r4051-grupo1/Proyecto/esp8266_frtos/inc/uart_driver.h"
-#include "queue.h"
+#include "../inc/main.h"
 
 xQueueHandle colarx;
 xQueueHandle colatx;
-espNetworks nets[15];
+xQueueHandle colaConexion;
 
-#define BUFFERSIZE		1024 //Tamaños de las colas
-#define HTML_CODE_SIZE	465
+xTaskHandle vUartReadHandle;
+xTaskHandle vProcessConectionHandle;
+
+int flag = 0;
+char resp[BUFFERSIZE] = {0};
+char respuesta[BUFFERSIZE] = {0};
 
 unsigned char inicializado = 0;
 unsigned int comandoCargado = 0;
 unsigned char revisaInic = 0;
+
+int mode = 0;
 
 char codigoHTML[HTML_CODE_SIZE] = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"utf-8\" /><title>Compost TDII</title>"
 		"<style>.sangria{text-indent: 30px;}</style><style>.textoAzul{color: blue; font-style: italic; font-weight: bold}"
@@ -23,304 +23,276 @@ char codigoHTML[HTML_CODE_SIZE] = "<!DOCTYPE html><html lang=\"es\"><head><meta 
 		"<h2 class=\"textoAzul\">Temperatura:</h2><h1 class=\"sangria\">24ºC</h1><br /><h2 class=\"textoAzul\">Humedad:</h2>"
 		"<h1 class=\"sangria\">56%</h1><br /></body></html>\r\n";
 
-espStatus_e status = ESP8266_TIMEOUT;
+char connectionHTML1[313] = "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"utf-8\"/><title>Compost TDII</title>"
+		"<style>.sangria{text-indent: 30px;}</style><style>.textoAzul{color: blue; font-style: italic; font-weight: bold}"
+		"</style></head><body><center><h1>Conexión exitosa</h1></center><br/>"
+		"<center><h3 class=\"textoAzul\">Dirijase a <a>";
 
-void initHardware(void)
-{
-    SystemCoreClockUpdate();
-    Board_Init();
-    Board_LED_Set(0, false);
-    inicializarPulsadores();
-    inicializarUART3();
-}
+char connectionHTML2[32] = "</a></h3></center></body></html>\r\n";
 
-void inicializarPulsadores(void){
+char formHTML[HTML_FORM_SIZE] = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Conexión</title></head><body>"
+		"<div class=\"container mt-5\"><h1>Conexión a la red</h1><form id=\"formulario\">"
+		"<input type=\"text\" name=\"net\" placeholder=\"Ingrese la red\" class=\"form-control mt-3\"><br><br>"
+		"<input type=\"password\" name=\"pass\" placeholder=\"Ingrese la contraseña\" class=\"form-control mt-3\"><br>"
+		"<br><button class=\"btn btn-primary mt-4\" type=\"submit\">Conectarse</button></form></div></body></html>\r\n";
 
-	Chip_IOCON_PinMuxSet(LPC_IOCON,2,13,FUNC0);	//SW1
-	Chip_GPIO_SetPinDIRInput(LPC_GPIO,2,13);
+char connectionHTML[358] = {0};
 
-	Chip_IOCON_PinMuxSet(LPC_IOCON,0,28,FUNC0); //SW2
-	Chip_GPIO_SetPinDIRInput(LPC_GPIO,0,28);
-
-	Chip_IOCON_PinMuxSet(LPC_IOCON,0,27,FUNC0); //SW3
-	Chip_GPIO_SetPinDIRInput(LPC_GPIO,0,27);
-
-}
-
-void inicializarVector(int len, char* vector){
-
-	int i;
-
-	for(i=0;i<len;i++){
-		vector[i] = 0;
-	}
-
-	return;
-}
 
 void vConfigEsp8266(void *parametros){
 
 	espStatus_e rv = ESP8266_NO_ANSWER;
-	char respuesta[BUFFERSIZE] = {0};
-	char ip[40] = {0};
+	static char respuesta[BUFFERSIZE] = {0};
 	int i = 0;
-	int j = 0;
 
-	esp8266Command("AT+RST\r\n");
+
 	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(rv == ESP8266_OK)
-				break;
-			if(i>BUFFERSIZE-1)
-				i = 0;
 
-			i++;
+		/*Se elimina el ECO*/
+		if(esp8266SendCommand("ATE0\r\n") == -1){
+			//Ocurrio un error
 		}
-	}
-	i=0;
-	rv = ESP8266_NO_ANSWER;
-	inicializarVector(BUFFERSIZE, respuesta);
-	esp8266Command("");
-	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(rv == ESP8266_READY)
-				break;
-			if(i>BUFFERSIZE-1)
-				break;
 
-			i++;
+		/*Desconectar del AP*/
+		//if(esp8266SendCommand("AT+CWQAP\r\n") == -1){
+			//Ocurrio un error
+		//}
 
+		/*Se activan ambos modos: AP-ST*/
+		if(esp8266SendCommand("AT+CWMODE=3\r\n") == -1){
+			//Ocurrio un error
 		}
-	}
-	i=0;
-	rv = ESP8266_NO_ANSWER;
-	inicializarVector(BUFFERSIZE, respuesta);
-	esp8266Command("ATE0\r\n");
-	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(rv == ESP8266_OK)
-				break;
 
-			if(i>BUFFERSIZE-1)
-				i = 0;
-
-			i++;
+		/*Habilito multiples conexiones*/
+		if(esp8266SendCommand("AT+CIPMUX=1\r\n") == -1){
+			//Ocurrio un error
 		}
-	}
-	i=0;
-	rv = ESP8266_NO_ANSWER;
-	inicializarVector(BUFFERSIZE, respuesta);
-	esp8266Command("AT+CWMODE=3\r\n");
-	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(rv == ESP8266_OK)
-				break;
 
-			if(i>BUFFERSIZE-1)
-				i = 0;
-
-			i++;
+		/*Creo el server en el puerto 80*/
+		if(esp8266SendCommand("AT+CIPSERVER=1,80\r\n") == -1){
+			//Ocurrio un error
 		}
-	}
-	i=0;
-	rv = ESP8266_NO_ANSWER;
-	inicializarVector(BUFFERSIZE, respuesta);
-	esp8266Command("AT+CWJAP=\"Bruno 2.4GHz\",\"platensewifi\"\r\n");
-	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(rv == ESP8266_OK)
-				break;
 
-			if(i>BUFFERSIZE-1)
-				i = 0;
+		/*Se consulta si esta conectado a una red*/
+		esp8266Command("AT+CWJAP?\r\n");
+		while(1){
+			if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
+				rv = esp8266ValidateResponse(respuesta);
+				resp[i] = respuesta[i];
+				if(rv == ESP8266_NO_AP){
+					mode = ACCESS_POINT_MODE;
+				}
+				else if(rv == ESP8266_AP){
+					mode = STATION_MODE;
+				}
 
-			i++;
-		}
-	}
-	i=0;
-	rv = ESP8266_NO_ANSWER;
-	inicializarVector(BUFFERSIZE, respuesta);
-	esp8266Command("AT+CIPMUX=1\r\n");
-	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(rv == ESP8266_OK)
-				break;
+				if(rv == ESP8266_OK)
+					break;
 
-			if(i>BUFFERSIZE-1)
-				i = 0;
+				if(i>BUFFERSIZE-1)
+					i = 0;
 
-			i++;
+				i++;
+			}
 		}
-	}
-	i=0;
-	rv = ESP8266_NO_ANSWER;
-	inicializarVector(BUFFERSIZE, respuesta);
-	esp8266Command("AT+CIPSERVER=1,80\r\n");
-	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(rv == ESP8266_OK)
-				break;
-			i++;
-		}
-	}
-	i=0;
-	rv = ESP8266_NO_ANSWER;
-	inicializarVector(BUFFERSIZE, respuesta);
-	esp8266Command("AT+CIFSR\r\n");
-	while(1){
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
-			rv = esp8266ValidateResponse(respuesta);
-			if(!j)
-				j = esp8266GetIP(ip, respuesta[i]);
-			if(rv == ESP8266_OK)
-				break;
-			i++;
-		}
+		i=0;
+		rv = ESP8266_NO_ANSWER;
+		inicializarVector(BUFFERSIZE, respuesta);
+
+
+		vTaskResume(vUartReadHandle);
+		vTaskResume(vProcessConectionHandle);
+		vTaskSuspend(NULL);
+
 	}
 
-	vTaskDelete(NULL);
+}
 
+void vAnswerProcess(void *parametros){
+
+	espAnswer respuesta;
+	respuesta.tipo = ESP8266_NOK;
+	respuesta.id = -1;
+	char sendCommand[100] = {0};
+	int tam = 0;
+	portBASE_TYPE xQueue;
+
+	while(1){
+
+		if(uxQueueMessagesWaiting(colaConexion) > 0){
+
+			xQueue = xQueueReceive(colaConexion,&respuesta, portMAX_DELAY);
+			//vTaskDelay(10/portTICK_RATE_MS);
+			if(xQueue == pdTRUE){
+
+				switch(respuesta.tipo){
+
+					case ESP8266_NOK:
+						break;
+
+					case ESP8266_AP_CONNECTION:
+						esp8266Command("AT+CIFSR\r\n");
+						break;
+
+					case ESP8266_ACCESS_POINT:
+						vTaskDelay(1000/portTICK_RATE_MS);
+						connectionToAccessPoint(respuesta);
+						break;
+
+					case ESP8266_CONNECTED:
+
+						switch(mode){
+							case STATION_MODE:
+								tam = sizeof(codigoHTML)-1;
+								break;
+							case ACCESS_POINT_MODE:
+								tam = sizeof(formHTML)-1;
+								break;
+							case CONNECTION_OK:
+								tam = sizeof(connectionHTML)-1;
+								break;
+
+						}
+
+						if(respuesta.id >= 0){
+							sprintf(sendCommand, "AT+CIPSEND=%d,%d\r\n", respuesta.id, tam);
+							esp8266Command(sendCommand);
+						}
+
+						break;
+
+					case ESP8266_RESPONSE:
+
+						switch(mode){
+
+							case STATION_MODE:
+								esp8266Command(codigoHTML);
+								break;
+							case ACCESS_POINT_MODE:
+								esp8266Command(formHTML);
+								break;
+							case CONNECTION_OK:
+								mode = STATION_MODE;
+								esp8266Command(connectionHTML);
+								break;
+						}
+
+					break;
+
+					case ESP8266_CLOSE:
+						if(respuesta.id >= 0){
+							sprintf(sendCommand, "AT+CIPCLOSE=%d\r\n", respuesta.id);
+							esp8266Command(sendCommand);
+						}
+						break;
+				}
+
+			}
+		}
+	}
 
 }
 
 //Creo una tarea que cada 10ms se fija si hay datos para leer.
 void vUartRead(void *parametros)
 {
-	int i = 0, j = 0, largo = 0, cantidad1 = 0, id = -1, bytes = 0;
-	Bool inicio = FALSE, flag = FALSE, mensajeRecibido = FALSE;
-	int conectado = FALSE, enviar = FALSE;
-	char dato;
-	char respuesta[BUFFERSIZE] = {0}, respuestaNeta[BUFFERSIZE] = {0};
-	char sendCommand[30] = {0};
-	espStatus_e rv = ESP8266_NO_ANSWER;
-	espCommand_e comando = ESP8266_DEFAULT;
+	int i = 0, j = -1;
+	espAnswer response;
+	response.tipo = ESP8266_NOK;
+	response.id = -1;
+	inicializarVector(50, response.net);
+	inicializarVector(40, response.pass);
+	inicializarVector(40, response.ip);
+	portBASE_TYPE xQueue;
 
 	while(1)
 	{
-		//vTaskDelay(10/portTICK_RATE_MS);
 
 		if(!inicializado) continue;
 
+		xQueue = xQueueReceive(colarx,&(respuesta[i]), 60000/portTICK_RATE_MS);
 
-		if(xQueueReceive(colarx,&(respuesta[i]), portMAX_DELAY) == pdTRUE){
+		if(xQueue == pdTRUE){
 
-			if(i<BUFFERSIZE && !conectado && !enviar){
+			if(i < BUFFERSIZE){
+				resp[i] = respuesta[i];
 
-				if(rv == ESP8266_DEVICE_CONNECTED){
-					bytes = esp8266ProcessConnection(respuesta[i], &id);
-					if(bytes > 0){
-						conectado = TRUE;
+				//Detecto el id del dispositivo conectado
+				esp8266ProcessConnection(respuesta[i], &(response.id));
+
+				if(response.id >= 0){
+
+					j = esp8266JoinAccessPoint(respuesta[i], &response);
+
+					//favicon - conexion invalida
+					if(j == 0){
+						response.tipo = ESP8266_NOK;
+						response.id = -1;
 					}
-				}
-				else{
-					rv = esp8266ValidateResponse(respuesta);
+					//Conexion sin GET
+					else if(j == 1){
+						response.tipo = ESP8266_CONNECTED;
+						xQueueSend(colaConexion, &response, portMAX_DELAY);
+					}
+					//Conexion con GET
+					else if(j == 2){
+						response.tipo = ESP8266_ACCESS_POINT;
+						xQueueSend(colaConexion, &response, portMAX_DELAY);
+					}
+
+					//Esperando datos para enviar
+					else if(respuesta[i] == '>'){
+						response.tipo = ESP8266_RESPONSE;
+						xQueueSend(colaConexion, &response, portMAX_DELAY);
+					}
+
+					//Recibe WIFI GOT IP\r\n\r\nOK\r\n
+					else if(esp8266SuccessfulConnection(respuesta[i]) > 0){
+						//Se consulta la STA-IP a la cual conectarse
+						response.tipo = ESP8266_AP_CONNECTION;
+						xQueueSend(colaConexion, &response, portMAX_DELAY);
+					}
+
+					//Detecta STAIP,"192...."
+					else if(esp8266GetStationIP(response.ip, respuesta[i]) > 0){
+						response.tipo = ESP8266_CONNECTED;
+						sprintf(connectionHTML, "%s%s%s", connectionHTML1, response.ip, connectionHTML2);
+						mode = CONNECTION_OK;
+						xQueueSend(colaConexion, &response, portMAX_DELAY);
+					}
+					//Detecta SEND OK
+					else if(esp8266DataSent(respuesta[i]) > 0){
+						response.tipo = ESP8266_CLOSE;
+						i = 0;
+						flag = 0;
+						inicializarVector(BUFFERSIZE, respuesta);
+						xQueueSend(colaConexion, &response, portMAX_DELAY);
+						inicializarVector(50, response.net);
+						inicializarVector(40, response.pass);
+						response.id = -1;
+					}
+
+
 				}
 
 			}
-			else if(conectado){
-				j++;
-				if(j == bytes-1){
-					vTaskDelay(10/portTICK_RATE_MS);
-					int tam = HTML_CODE_SIZE;
-					sprintf(sendCommand, "AT+CIPSEND=%d,%d\r\n", id, tam);
-					esp8266Command(sendCommand);
-					enviar = TRUE;
-					conectado = FALSE;
-					bytes = 0;
-					j = 0;
-				}
-			}
-			else if(enviar){
-				if(respuesta[i] == '>'){
-					esp8266Command(codigoHTML);
-					enviar = FALSE;
-					inicializarVector(BUFFERSIZE, respuesta);
-					i = 0;
-					sprintf(sendCommand, "AT+CIPCLOSE=%d\r\n", id);
-					esp8266Command(sendCommand);
-					id = -1;
-				}
+			else{
+				i = 0;
+				flag=0;
+				inicializarVector(BUFFERSIZE, respuesta);
 			}
 
 			i++;
+			flag++;
 
 		}
-
-
-
-
-/*
-
-		//Leo los datos en la cola rx
-		cantidad = uxQueueMessagesWaiting(colarx);
-
-		if(cantidad){
-
-			for(i=0;i<BUFFERSIZE;i++){
-				respuesta[i] = 0;
-				respuestaNeta[i] = 0;
-			}
-
-			for(i=0;i<20;i++){
-				comando[i] = 0;
-			}
-
+		else if(xQueue == errQUEUE_EMPTY){
+			response.id = -1;
+			inicializarVector(50, response.net);
+			inicializarVector(40, response.pass);
 			i = 0;
-
-			while(xQueueReceive(colarx,&(respuesta[i]),portMAX_DELAY) == pdTRUE){
-
-				esp8266SeparateResponse(respuesta[i], &(respuestaNeta), &(comando), &cmd, cantidad);
-				i++;
-
-				if(i==30)
-					cantidad = 0;
-			}
-
-			//cantidad1 = uxQueueMessagesWaiting(colarx);
-
-			rv = esp8266ProcessResponse(respuestaNeta, cmd);
-
-		}
-*/
-
-	}
-
-}
-
-//Carga el comando seleccionado en la cola tx
-void vSelectCommand(void *a){
-
-	while(1){
-
-		vTaskDelay(10/portTICK_RATE_MS);
-
-		//SW1 - Reset
-		if(!Chip_GPIO_GetPinState(LPC_GPIO,2,13)){
-			char cmdMode[20] = "ATE0\r\n";
-			//char cmdMode[20] = "AT+CIPMUX=1\r\n";
-			esp8266Command(cmdMode);
-		}
-		//SW2 - Modo 1
-		else if(!Chip_GPIO_GetPinState(LPC_GPIO,0,28)){
-			//char cmdModo[20] = "AT+CWLAP\r\n";
-			//char cmdModo[30] = "AT+UART_DEF=9600,8,1,0,0\r\n";
-			//char cmdModo[28] = "AT+CIOBAUD=9600\r\n";
-			char cmdConnect[100] = "AT+CIPSERVER=1,80\r\n";
-			//char cmdConnect[40] = "ATE0\r\n";
-			esp8266Command(cmdConnect);
-		}
-		//SW3 - Modo?
-		else if(!Chip_GPIO_GetPinState(LPC_GPIO,0,27)){
-			//char cmdConsultarModo[20] = "AT+CWMODE=?\r\n";
-			char cmdConsultarIP[20] = "AT+CIFSR\r\n";
-			esp8266Command(cmdConsultarIP);
+			flag = 0;
+			inicializarVector(BUFFERSIZE, respuesta);
 		}
 
 	}
@@ -333,21 +305,22 @@ int main(void)
 
 	colarx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colatx = xQueueCreate(BUFFERSIZE, sizeof(char));
-
-	//Tarea que se fija si hay datos por enviar.
-	//xTaskCreate(vUartWrite,(const char * ) "Escribir UART", configMINIMAL_STACK_SIZE,
-	//				0, tskIDLE_PRIORITY+1, 0 );
+	colaConexion = xQueueCreate(10, sizeof(espAnswer));
 
 	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vUartRead, (const char * ) "Leer UART", 10*configMINIMAL_STACK_SIZE,
-					0, tskIDLE_PRIORITY+1, 0 );
+	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 5*configMINIMAL_STACK_SIZE,
+					0, tskIDLE_PRIORITY+2, &vUartReadHandle );
 
-	//Tarea que lee los sw
-	//xTaskCreate(vSelectCommand, (const char * ) "Leer teclas", configMINIMAL_STACK_SIZE,
-	//				0, tskIDLE_PRIORITY+1, 0 );
+	//Tarea que se fija si hay datos para leer.
+	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 5*configMINIMAL_STACK_SIZE,
+					0, tskIDLE_PRIORITY+1, &vProcessConectionHandle );
 
-	xTaskCreate(vConfigEsp8266, (const char * ) "Config esp8266", 4*configMINIMAL_STACK_SIZE,
-					0, tskIDLE_PRIORITY+2, 0 );
+
+	xTaskCreate(vConfigEsp8266, (const unsigned char * ) "Config esp8266", 5*configMINIMAL_STACK_SIZE,
+					0, tskIDLE_PRIORITY+3, 0 );
+
+	vTaskSuspend(vProcessConectionHandle);
+	vTaskSuspend(vUartReadHandle);
 
 	vTaskStartScheduler();
 
