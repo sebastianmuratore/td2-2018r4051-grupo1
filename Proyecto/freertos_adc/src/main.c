@@ -4,7 +4,6 @@
 #include "../../PWMyTFT/inc/FreeRTOS.h"
 #include "board.h"
 #include "task.h"
-#include "task.h"
 #include "queue.h"
 #include "semphr.h"
 //#include "basic_io.h"

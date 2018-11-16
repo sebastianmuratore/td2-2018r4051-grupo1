@@ -8,6 +8,7 @@ xSemaphoreHandle sTFT;
 xQueueHandle colarx;
 xQueueHandle colatx;
 xQueueHandle colaConexion;
+xQueueHandle colaADC;
 
 xTaskHandle vUartReadHandle;
 xTaskHandle vProcessConectionHandle;
@@ -103,6 +104,7 @@ int main(void)
 	colarx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colatx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colaConexion = xQueueCreate(10, sizeof(espAnswer));
+	colaADC = xQueueCreate(10, sizeof(uint16_t));
 
 	//Tarea que se fija si hay datos para leer.
 	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 5*configMINIMAL_STACK_SIZE,
@@ -127,6 +129,8 @@ int main(void)
 	xTaskCreate(vDrawMenues, (const signed char *)"vDrawMenues", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, 0);
 
 	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0);
+
+	xTaskCreate(vReadDataADC, (const char *)"vReadDataADC", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
 
 	vTaskSuspend(vProcessConectionHandle);
 	vTaskSuspend(vUartReadHandle);

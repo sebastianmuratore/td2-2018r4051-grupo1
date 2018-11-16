@@ -13,6 +13,7 @@
 #include "../inc/functions.h"
 #include "../inc/esp8266_tasks.h"
 #include "../inc/TFT_tasks.h"
+#include "../inc/HL-69_tasks.h"
 #include "task.h"
 #include "board.h"
 #include "queue.h"
