@@ -252,23 +252,11 @@ void inicializarUART3 (void)
 	 int i;
 	 int len = strlen(cmd);
 
-	 //Chip_UART_IntEnable(LPC_UART3, UART_IER_THREINT);
-	 //Chip_UART_IntDisable(LPC_UART3, UART_IER_RBRINT);
-
-	 //Chip_UART_IntEnable(LPC_UART3, UART_IER_RBRINT);
-	 //NVIC_EnableIRQ(UART3_IRQn);
-
 	 for(i=1;i<len;i++){
 		xQueueSend(colatx, &(cmd[i]), portMAX_DELAY);
-
-		//while(!(LPC_UART3->LSR & (1<<6))){}
-
-		//LPC_UART3->THR = cmd[i];
 	 }
 
-
 	 LPC_UART3->THR = cmd[0];
-	 //Chip_UART_Send(LPC_UART3, &(comando[0]), len);
 
  }
 

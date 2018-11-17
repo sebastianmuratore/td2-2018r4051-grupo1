@@ -13,5 +13,5 @@ void InitADC(void);
 void ADC_PIN_init(void);
 //void EINT0_PIN_init(void);
 
-void vReadDataADC(void);
+void vReadDataADC(void *a);
 void ReadDataADC(void);

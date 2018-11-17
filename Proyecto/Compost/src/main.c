@@ -5,12 +5,14 @@
 xSemaphoreHandle sServo;
 xSemaphoreHandle sTFT;
 xSemaphoreHandle sMenu;
+xSemaphoreHandle sInicio;
 
 xQueueHandle colarx;
 xQueueHandle colatx;
 xQueueHandle colaConexion;
 xQueueHandle qDatos;
 xQueueHandle colaADC;
+xQueueHandle xQueueADC;
 
 xTaskHandle vUartReadHandle;
 xTaskHandle vProcessConectionHandle;
@@ -72,9 +74,13 @@ int main(void)
 //	vSemaphoreCreateBinary(sServo);
 	vSemaphoreCreateBinary(sTFT);
 	vSemaphoreCreateBinary(sMenu);
+	vSemaphoreCreateBinary(sInicio);
+
 
 	xSemaphoreTake(sTFT,portMAX_DELAY);
 	xSemaphoreTake(sMenu,portMAX_DELAY);
+	xSemaphoreTake(sInicio,portMAX_DELAY);
+
 
 	colarx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colatx = xQueueCreate(BUFFERSIZE, sizeof(char));
@@ -85,20 +91,14 @@ int main(void)
 	colaADC = xQueueCreate(10, sizeof(uint16_t));
 
 	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 2*configMINIMAL_STACK_SIZE,
-				0, tskIDLE_PRIORITY+2, &vUartReadHandle );
+	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 2*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, &vUartReadHandle );
 
 	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 3*configMINIMAL_STACK_SIZE,
-					0, tskIDLE_PRIORITY+1, &vProcessConectionHandle );
+	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 3*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, &vProcessConectionHandle );
 
+	xTaskCreate(vConfigEsp8266, (const unsigned char * ) "Config esp8266", 5*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+3, 0 );
 
-	xTaskCreate(vConfigEsp8266, (const unsigned char * ) "Config esp8266", 5*configMINIMAL_STACK_SIZE,
-					0, tskIDLE_PRIORITY+3, 0 );
-
-	xTaskCreate(vGetReport, (const unsigned char * ) "Get Report", 1*configMINIMAL_STACK_SIZE,
-						0, tskIDLE_PRIORITY+2, 0 );
-
+	xTaskCreate(vGetReport, (const unsigned char * ) "Get Report", 1*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0 );
 
 	//xSemaphoreTake(sServo,portMAX_DELAY);
 
@@ -112,7 +112,7 @@ int main(void)
 
 	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+4, 0);
 
-	xTaskCreate(vReadDataADC, (const char *)"vReadDataADC", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
+	//xTaskCreate(vReadDataADC, (const char *)"vReadDataADC", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
 
 	vTaskSuspend(vProcessConectionHandle);
 	vTaskSuspend(vUartReadHandle);

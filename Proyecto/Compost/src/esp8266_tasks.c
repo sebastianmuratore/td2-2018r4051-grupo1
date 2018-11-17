@@ -13,6 +13,7 @@ extern xQueueHandle colaConexion;
 extern xTaskHandle vUartReadHandle;
 extern xTaskHandle vProcessConectionHandle;
 extern xSemaphoreHandle sMenu;
+extern xSemaphoreHandle sInicio;
 
 int flag = 0;
 char resp[BUFFERSIZE] = {0};
@@ -43,7 +44,7 @@ char formHTML[HTML_FORM_SIZE] = "<!doctype html><html lang=\"en\"><head><meta ch
 		"<input type=\"password\" name=\"pass\" placeholder=\"Ingrese la contraseña\" class=\"form-control mt-3\"><br>"
 		"<br><button class=\"btn btn-primary mt-4\" type=\"submit\">Conectarse</button></form></div></body></html>\r\n";
 
-char connectionHTML[361] = {0};
+char connectionHTML[360] = {0};
 char ip[20];
 
 void vConfigEsp8266(void *parametros){
@@ -113,6 +114,7 @@ void vConfigEsp8266(void *parametros){
 		rv = ESP8266_NO_ANSWER;
 		inicializarVector(BUFFERSIZE, respuesta);
 
+		//Evitar que se conecte luego si aparece la red
 		if(mode == ACCESS_POINT_MODE){
 			/*Desconectar del AP*/
 			if(esp8266SendCommand("AT+CWQAP\r\n") == -1){
@@ -120,8 +122,8 @@ void vConfigEsp8266(void *parametros){
 			}
 		}
 
+		xSemaphoreGive(sInicio);
 		xSemaphoreGive(sMenu);
-		//mostrar en display ip
 		vTaskResume(vUartReadHandle);
 		vTaskResume(vProcessConectionHandle);
 		vTaskSuspend(NULL);
@@ -171,7 +173,6 @@ void vAnswerProcess(void *parametros){
 								tam = sizeof(formHTML)-1;
 								break;
 							case CONNECTION_OK:
-								mode = STATION_MODE;
 								tam = sizeof(connectionHTML)-1;
 								break;
 
@@ -189,13 +190,15 @@ void vAnswerProcess(void *parametros){
 						switch(mode){
 
 							case STATION_MODE:
-								esp8266Command(codigoHTML);
 								xSemaphoreGive(sMenu);
+								esp8266Command(codigoHTML);
 								break;
 							case ACCESS_POINT_MODE:
 								esp8266Command(formHTML);
 								break;
 							case CONNECTION_OK:
+								mode = STATION_MODE;
+								//xSemaphoreGive(sMenu);
 								esp8266Command(connectionHTML);
 								break;
 						}
@@ -282,7 +285,7 @@ void vUartRead(void *parametros)
 						sprintf(connectionHTML, "%s%s%s", connectionHTML1, response.ip, connectionHTML2);
 						strcpy(ip,response.ip);
 						mode = CONNECTION_OK;
-						xSemaphoreGive(sMenu);
+						xSemaphoreGive(sMenu); //Sale de ACCESS_MODE en TFT_tasks.c
 						xQueueSend(colaConexion, &response, portMAX_DELAY);
 					}
 					//Detecta SEND OK

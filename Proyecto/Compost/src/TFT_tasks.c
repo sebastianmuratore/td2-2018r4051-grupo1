@@ -7,7 +7,9 @@ extern int mode;
 extern char ip[20];
 extern xQueueHandle qDatos;
 extern xSemaphoreHandle sMenu;
+extern xSemaphoreHandle sInicio;
 extern char codigoHTML[HTML_CODE_SIZE];
+
 void vInitLCD	(void* ptr)
 {
 	while(1)
@@ -121,16 +123,16 @@ void vDrawMenues( void *a)
 		 				 switch(mode)
 		 				 {
 		 				 	 case ACCESS_POINT_MODE:
-//		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
+		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
 		 				 		 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
 		 				 		 sprintf(msg,"Conectese a la red FaryLink\n\n"
 		 				 				 "Abra el navegador e ingrese la direccion:\n\n%s:80",ip);
 		 				 		 TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
 		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
-
 		 				 		 break;
 
 		 				 	 case STATION_MODE:
+		 				 		xSemaphoreTake(sMenu,portMAX_DELAY);
 		 				 		TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
 		 				 		sprintf(msg,"Ingrese la direccion:\n\n%s:80",ip);
 		 				 		TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
@@ -140,7 +142,6 @@ void vDrawMenues( void *a)
 								break;
 
 		 				 	 case CONNECTION_OK:
-		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
 		 				 		 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
 		 				 		 sprintf(msg,"Conexion exitosa\n\nDirijase a la direccion:\n\n%s:80", ip);
 		 				 		 TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
@@ -158,11 +159,11 @@ void vDrawMenues( void *a)
 		 				 TFT_setColor(NEGRO);
 		 				 TFT_DrawRectangle(PANTALLA_COMPLETA,TRUE);
 		 				 TFT_DrawText(145,200,"Loading...",arial_bold,TFT_getColor(BLANCO));
-		 				 sem = xSemaphoreTake(sMenu,DIEZ_SEG);
+		 				 sem = xSemaphoreTake(sInicio,DIEZ_SEG);
 		 				 if(sem == pdTRUE )
 		 				 {
 		 					menu = CONEXION;
-		 					vTaskPrioritySet(NULL,tskIDLE_PRIORITY + 2);
+		 					vTaskPrioritySet(NULL,tskIDLE_PRIORITY+2);
 		 				 }
 		 				 else
 		 					menu =	MJE_ERROR;

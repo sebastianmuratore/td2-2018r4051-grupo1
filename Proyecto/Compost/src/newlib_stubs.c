@@ -4,7 +4,7 @@
  */
 
 
-#include "../../PWMyTFT/inc/newlib_stubs.h"
+#include "../inc/newlib_stubs.h"
 
 
 
