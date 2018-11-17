@@ -18,7 +18,8 @@ typedef enum
 	PRESENTACION 	= 0 ,
 	PANTALLA_PPAL	= 1 ,
 	LOADING			= 2 ,
-	MJE_ERROR		= 3
+	MJE_ERROR		= 3,
+	CONEXION		= 4
 }MENUES;
 
 
@@ -80,8 +81,16 @@ void 		initScreen(Rectangle* rect);
 #define  	TFT_PIXEL_WIDTH    239
 #define  	TFT_PIXEL_HEIGHT   319
 
-#define		PANTALLA_COMPLETA  0,0,320,240
+//Pantallas
+#define		PANTALLA_COMPLETA  	0,0,320,240
+#define		MARGEN_SUPERIOR		0,0,320,40
+#define		MARGEN_INFERIOR		0,40,320,240
+
+//Colores
 #define		COLOR_PANTALLA_PPAL AZUL_FRANCIA
+#define		COLOR_MARGEN_SUPERIOR 	VERDE
+#define		COLOR_MARGEN_INFERIOR	AZUL_FRANCIA
+
 
 
 // B , R , G

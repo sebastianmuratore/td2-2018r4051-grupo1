@@ -1,6 +1,11 @@
 #include "../inc/main.h"
 #include "Fonts.h"
+
 extern uint32_t color;
+extern int mode;
+
+extern char ip[20];
+
 
 void init_TFT	(	void 	)
 {
@@ -29,6 +34,8 @@ void DrawScreen(MENUES menu, Rectangle screen)
 		uint32_t background = Rectangle_getColor(screen);
 		uint8_t i=0;
 
+		char msg[100];
+
 
 		switch(menu)
 		{
@@ -36,10 +43,13 @@ void DrawScreen(MENUES menu, Rectangle screen)
 				 color = background;
 				 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE	);
 				 TFT_DrawText(30,30,"PROYECTO\nTECNICAS DIGITALES II",arial_italic,TFT_getColor(BLANCO));
-				 vTaskDelay(1000/portTICK_RATE_MS);
+				 vTaskDelay(10000/portTICK_RATE_MS);
 				 TFT_DrawText(30,100,"Grupo 3\nBruno, Galazan, Gomez, Muratore",arial_italic,TFT_getColor(BLANCO));
-				 TFT_clearText(30,30,sizeof("PROYECTO"),arial_italic,background);
-				 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE	);
+				 vTaskDelay(10000/portTICK_RATE_MS);
+				 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
+				 sprintf(msg,"Abra el navegador e ingrese la direccion: %s:80",ip);
+				 TFT_DrawText(30,30,msg,arial_italic,TFT_getColor(BLANCO));
+
 				 break;
 
 			 case LOADING:

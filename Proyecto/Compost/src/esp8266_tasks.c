@@ -12,6 +12,7 @@ extern xQueueHandle colaConexion;
 
 extern xTaskHandle vUartReadHandle;
 extern xTaskHandle vProcessConectionHandle;
+extern xSemaphoreHandle sMenu;
 
 int flag = 0;
 char resp[BUFFERSIZE] = {0};
@@ -34,7 +35,7 @@ char connectionHTML1[313] = "<!DOCTYPE html><html lang=\"es\"><head><meta charse
 		"</style></head><body><center><h1>Conexión exitosa</h1></center><br/>"
 		"<center><h3 class=\"textoAzul\">Dirijase a <a>";
 
-char connectionHTML2[32] = "</a></h3></center></body></html>\r\n";
+char connectionHTML2[35] = ":80</a></h3></center></body></html>\r\n";
 
 char formHTML[HTML_FORM_SIZE] = "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Conexión</title></head><body>"
 		"<div class=\"container mt-5\"><h1>Conexión a la red</h1><form id=\"formulario\">"
@@ -42,13 +43,13 @@ char formHTML[HTML_FORM_SIZE] = "<!doctype html><html lang=\"en\"><head><meta ch
 		"<input type=\"password\" name=\"pass\" placeholder=\"Ingrese la contraseña\" class=\"form-control mt-3\"><br>"
 		"<br><button class=\"btn btn-primary mt-4\" type=\"submit\">Conectarse</button></form></div></body></html>\r\n";
 
-char connectionHTML[358] = {0};
+char connectionHTML[361] = {0};
+char ip[20];
 
 void vConfigEsp8266(void *parametros){
 
 	espStatus_e rv = ESP8266_NO_ANSWER;
 	static char respuesta[BUFFERSIZE] = {0};
-	char ip[20];
 	int i = 0;
 
 
@@ -58,11 +59,6 @@ void vConfigEsp8266(void *parametros){
 		if(esp8266SendCommand("ATE0\r\n") == -1){
 			//Ocurrio un error
 		}
-
-		/*Desconectar del AP*/
-		//if(esp8266SendCommand("AT+CWQAP\r\n") == -1){
-			//Ocurrio un error
-		//}
 
 		/*Se activan ambos modos: AP-ST*/
 		if(esp8266SendCommand("AT+CWMODE=3\r\n") == -1){
@@ -117,7 +113,14 @@ void vConfigEsp8266(void *parametros){
 		rv = ESP8266_NO_ANSWER;
 		inicializarVector(BUFFERSIZE, respuesta);
 
+		if(mode == ACCESS_POINT_MODE){
+			/*Desconectar del AP*/
+			if(esp8266SendCommand("AT+CWQAP\r\n") == -1){
+				//Ocurrio un error
+			}
+		}
 
+		xSemaphoreGive(sMenu);
 		//mostrar en display ip
 		vTaskResume(vUartReadHandle);
 		vTaskResume(vProcessConectionHandle);
@@ -168,6 +171,7 @@ void vAnswerProcess(void *parametros){
 								tam = sizeof(formHTML)-1;
 								break;
 							case CONNECTION_OK:
+								mode = STATION_MODE;
 								tam = sizeof(connectionHTML)-1;
 								break;
 
@@ -186,12 +190,12 @@ void vAnswerProcess(void *parametros){
 
 							case STATION_MODE:
 								esp8266Command(codigoHTML);
+								xSemaphoreGive(sMenu);
 								break;
 							case ACCESS_POINT_MODE:
 								esp8266Command(formHTML);
 								break;
 							case CONNECTION_OK:
-								mode = STATION_MODE;
 								esp8266Command(connectionHTML);
 								break;
 						}
@@ -276,7 +280,9 @@ void vUartRead(void *parametros)
 					else if(esp8266GetStationIP(response.ip, respuesta[i]) > 0){
 						response.tipo = ESP8266_CONNECTED;
 						sprintf(connectionHTML, "%s%s%s", connectionHTML1, response.ip, connectionHTML2);
+						strcpy(ip,response.ip);
 						mode = CONNECTION_OK;
+						xSemaphoreGive(sMenu);
 						xQueueSend(colaConexion, &response, portMAX_DELAY);
 					}
 					//Detecta SEND OK

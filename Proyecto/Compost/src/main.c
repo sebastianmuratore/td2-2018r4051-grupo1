@@ -4,10 +4,12 @@
 
 xSemaphoreHandle sServo;
 xSemaphoreHandle sTFT;
+xSemaphoreHandle sMenu;
 
 xQueueHandle colarx;
 xQueueHandle colatx;
 xQueueHandle colaConexion;
+xQueueHandle qDatos;
 
 xTaskHandle vUartReadHandle;
 xTaskHandle vProcessConectionHandle;
@@ -56,37 +58,6 @@ xTaskHandle vProcessConectionHandle;
 //		}
 //	}
 //}
-//static void vServoWrite(void * a)
-//{
-//	static int giro = 1;
-//	float duty;
-//
-//	while (1)
-//	{
-//		xSemaphoreTake(sServo,portMAX_DELAY);
-//
-//		if(giro)
-//		{
-//			duty = MS(0.6);
-//			giro = 0;
-//		}
-//
-//		else
-//		{
-//			duty = MS(2.4);
-//			giro = 1;
-//		}
-//
-//		Chip_TIMER_SetMatch(LPC_TIMER1, 1, duty);
-//		Chip_TIMER_Reset(LPC_TIMER1);
-//		Chip_TIMER_ClearMatch(LPC_TIMER1, 1);
-//		Chip_TIMER_ClearMatch(LPC_TIMER1, 0);
-//
-//
-//
-//	}
-//
-//}
 
 
 
@@ -94,39 +65,48 @@ xTaskHandle vProcessConectionHandle;
 
 int main(void)
 {
-	initHardware();
+
+		initHardware();
 
 //	vSemaphoreCreateBinary(sServo);
 	vSemaphoreCreateBinary(sTFT);
+	vSemaphoreCreateBinary(sMenu);
+
 	xSemaphoreTake(sTFT,portMAX_DELAY);
+	xSemaphoreTake(sMenu,portMAX_DELAY);
 
 	colarx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colatx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colaConexion = xQueueCreate(10, sizeof(espAnswer));
+	qDatos = xQueueCreate(10,sizeof(Datos));
 
 	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 5*configMINIMAL_STACK_SIZE,
+	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 2*configMINIMAL_STACK_SIZE,
 				0, tskIDLE_PRIORITY+2, &vUartReadHandle );
 
 	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 5*configMINIMAL_STACK_SIZE,
+	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 3*configMINIMAL_STACK_SIZE,
 					0, tskIDLE_PRIORITY+1, &vProcessConectionHandle );
 
 
 	xTaskCreate(vConfigEsp8266, (const unsigned char * ) "Config esp8266", 5*configMINIMAL_STACK_SIZE,
 					0, tskIDLE_PRIORITY+3, 0 );
 
+	xTaskCreate(vGetReport, (const unsigned char * ) "Get Report", 1*configMINIMAL_STACK_SIZE,
+						0, tskIDLE_PRIORITY+2, 0 );
+
+
 	//xSemaphoreTake(sServo,portMAX_DELAY);
 
-	//xTaskCreate(vServoWrite, (const char *)"vServoWrite", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
+	//xTaskCreate(vServoWrite, (const char *)"vServoWrite", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0);
 
 	//xTaskCreate(vAccion, (const char *)"vAccion", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
 
 	//xTaskCreate(vTouch, (const char *)"vTouch", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
 
-	xTaskCreate(vDrawMenues, (const signed char *)"vDrawMenues", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, 0);
+	xTaskCreate(vDrawMenues, (const signed char *)"vDrawMenues", 3*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+3, 0);
 
-	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0);
+	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+4, 0);
 
 	vTaskSuspend(vProcessConectionHandle);
 	vTaskSuspend(vUartReadHandle);

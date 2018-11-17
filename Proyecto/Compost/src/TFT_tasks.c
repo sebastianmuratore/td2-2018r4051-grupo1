@@ -1,6 +1,13 @@
 #include "../inc/main.h"
+#include "Fonts.h"
 
 
+extern uint32_t color;
+extern int mode;
+extern char ip[20];
+extern xQueueHandle qDatos;
+extern xSemaphoreHandle sMenu;
+extern char codigoHTML[HTML_CODE_SIZE];
 void vInitLCD	(void* ptr)
 {
 	while(1)
@@ -82,24 +89,127 @@ void vDrawMenues( void *a)
 {
 	  MENUES menu;
 	  Rectangle screen;
-
+	  portBASE_TYPE sem;
+	  Datos datos;
+	  int flag = 1;
 
 	  xSemaphoreTake(sTFT,portMAX_DELAY);
 	  initScreen(&screen);
+	  menu = LOADING;
+	  uint32_t background = Rectangle_getColor(screen);
 
+	  char msg[100];
 
 	 while(1)
 	 {
 
-		 menu = PRESENTACION;
-		 DrawScreen(menu,screen);
+		 switch(menu)
+		 		{
+		 			 case PRESENTACION:
+		 				 color = background;
+		 				 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE	);
+		 				 TFT_DrawText(30,30,"PROYECTO\nTECNICAS DIGITALES II",arial_italic,TFT_getColor(BLANCO));
+		 				 vTaskDelay(10000/portTICK_RATE_MS);
+		 				 TFT_DrawText(30,100,"Grupo 3\nBruno, Galazan, Gomez, Muratore",arial_italic,TFT_getColor(BLANCO));
+		 				 vTaskDelay(10000/portTICK_RATE_MS);
+		 				 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
+		 				 menu = CONEXION;
+		 				 break;
 
-		 vTaskDelay(50000/portTICK_RATE_MS);
+		 			 case CONEXION:
 
-		 menu = PANTALLA_PPAL;
-		 DrawScreen(menu,screen);
+		 				 switch(mode)
+		 				 {
+		 				 	 case ACCESS_POINT_MODE:
+//		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
+		 				 		 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
+		 				 		 sprintf(msg,"Conectese a la red FaryLink\n\n"
+		 				 				 "Abra el navegador e ingrese la direccion:\n\n%s:80",ip);
+		 				 		 TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
+		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
 
-		 vTaskDelay(50000/portTICK_RATE_MS);
+		 				 		 break;
+
+		 				 	 case STATION_MODE:
+		 				 		TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
+		 				 		sprintf(msg,"Ingrese la direccion:\n\n%s:80",ip);
+		 				 		TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
+		 				 		xSemaphoreTake(sMenu,portMAX_DELAY);
+		 				 		menu = PANTALLA_PPAL;
+
+								break;
+
+		 				 	 case CONNECTION_OK:
+		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
+		 				 		 TFT_DrawRectangle(screen.x,screen.y,screen.w,screen.h,TRUE);
+		 				 		 sprintf(msg,"Conexion exitosa\n\nDirijase a la direccion:\n\n%s:80", ip);
+		 				 		 TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
+		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
+		 				 		 menu = PANTALLA_PPAL;
+		 				 		 break;
+
+		 				 	 default:
+		 				 		 break;
+		 				 }
+
+		 				 break;
+
+		 			 case LOADING:
+		 				 TFT_setColor(NEGRO);
+		 				 TFT_DrawRectangle(PANTALLA_COMPLETA,TRUE);
+		 				 TFT_DrawText(145,200,"Loading...",arial_bold,TFT_getColor(BLANCO));
+		 				 sem = xSemaphoreTake(sMenu,DIEZ_SEG);
+		 				 if(sem == pdTRUE )
+		 				 {
+		 					menu = CONEXION;
+		 					vTaskPrioritySet(NULL,tskIDLE_PRIORITY + 2);
+		 				 }
+		 				 else
+		 					menu =	MJE_ERROR;
+		 				 break;
+
+
+
+		 			 case PANTALLA_PPAL:
+
+		 				 if(flag)
+		 				 {
+		 					 TFT_setColor(COLOR_MARGEN_SUPERIOR);
+		 					 TFT_DrawRectangle(MARGEN_SUPERIOR,TRUE);
+		 					 TFT_DrawText(10,RENGLON(0,32),"Datos Compost : 16/11/18",arial_italic,TFT_getColor(NEGRO));
+		 					 TFT_setColor(COLOR_MARGEN_INFERIOR);
+		 					 TFT_DrawRectangle(MARGEN_INFERIOR,TRUE);
+		 					 flag = 0;
+		 				 }
+		 				 if(xQueueReceive(qDatos,&datos,portMAX_DELAY))
+		 				 {
+		 					 codigoHTML[364] = (char)datos.temperatura/10;
+		 					 codigoHTML[365] = (char)datos.temperatura - codigoHTML[364]*10;
+		 					 codigoHTML[435] = (char)datos.humedad/10;
+		 					 codigoHTML[436] = (char)datos.humedad - codigoHTML[435]*10;
+
+		 					 TFT_clearText(10,RENGLON(4,32),sizeof("Humedad: xx    "),arial_italic,color);
+		 					 TFT_clearText(10,RENGLON(5,32),sizeof("Humedad: xx    "),arial_italic,color);
+		 					 sprintf(msg,"Temperatura: %.2f C",datos.temperatura);
+		 					 TFT_DrawText(10,RENGLON(4,32),msg,arial_italic,TFT_getColor(BLANCO));
+		 					 sprintf(msg,"Humedad: %.2f ",datos.humedad);
+		 					 TFT_DrawText(10,RENGLON(5,32),msg,arial_italic,TFT_getColor(BLANCO));
+
+		 				 }
+		 				 break;
+
+
+		 			 case MJE_ERROR:
+		 				 TFT_setColor(ROJO);
+		 				 TFT_DrawRectangle(PANTALLA_COMPLETA,TRUE);
+		 				 TFT_DrawText(0,0,"Error!\nReinicie el dispositivo",arial_bold,TFT_getColor(BLANCO));
+		 				 menu = 10;
+
+		 				 break;
+
+		 		}
+
+
 
 
 

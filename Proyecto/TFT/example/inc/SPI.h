@@ -46,6 +46,8 @@
 
 
 
+
+
 void 	init_SPI 	 (	void	);
 void	init_PinesSPI(	void	);
 void 	SPI_Conectar (	void	);
