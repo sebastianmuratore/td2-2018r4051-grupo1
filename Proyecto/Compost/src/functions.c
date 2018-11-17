@@ -19,6 +19,7 @@ void initHardware(void)
 	initTouch();
 	init_TFT();
     inicializarUART3();
+    initADC();
 
 }
 
