@@ -184,10 +184,11 @@ void vDrawMenues( void *a)
 		 				 }
 		 				 if(xQueueReceive(qDatos,&datos,portMAX_DELAY))
 		 				 {
-		 					 codigoHTML[364] = (char)datos.temperatura/10;
-		 					 codigoHTML[365] = (char)datos.temperatura - codigoHTML[364]*10;
-		 					 codigoHTML[435] = (char)datos.humedad/10;
-		 					 codigoHTML[436] = (char)datos.humedad - codigoHTML[435]*10;
+		 					 codigoHTML[364] = 48 + (int)(datos.temperatura/10);
+		 					 codigoHTML[365] = 48 + (int)(datos.temperatura - ((int)codigoHTML[364]-48)*10);
+		 					 codigoHTML[435] = 48 + (int)(datos.humedad/10);
+		 					 codigoHTML[436] = 48 + (int)(datos.humedad - ((int)codigoHTML[435]-48)*10);
+
 
 		 					 TFT_clearText(10,RENGLON(4,32),sizeof("Humedad: xx    "),arial_italic,color);
 		 					 TFT_clearText(10,RENGLON(5,32),sizeof("Humedad: xx    "),arial_italic,color);
