@@ -70,7 +70,7 @@ xTaskHandle vProcessConectionHandle;
 int main(void)
 {
 
-		initHardware();
+	initHardware();
 
 //	vSemaphoreCreateBinary(sServo);
 	vSemaphoreCreateBinary(sTFT);

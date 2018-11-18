@@ -6,11 +6,18 @@
  */
 #include "..//inc/main.h"
 
+void init_Servo()
+{
+	init_PWM();
+	init_timers();
+	init_pulsador();
+}
 void init_PWM ()
 {
 	 init_pinesPWM();
 	 init_timers();
 }
+
 void init_timers(void)
 {
 	uint32_t pclock=0;
@@ -54,4 +61,10 @@ void init_pinesPWM (	void	)
 	Chip_GPIO_SetDir(LPC_GPIO,PIN_PWM,OUTPUT);
 	Chip_GPIO_SetDir(LPC_GPIO,SW_ARRIBA,INPUT);
 	Chip_GPIO_SetDir(LPC_GPIO,SW_ABAJO,INPUT);
+}
+
+void init_pulsador(		void	)
+{
+	Chip_IOCON_PinMux(LPC_IOCON,PIN_PULSADOR_SERVO,IOCON_MODE_PULLUP,FUNC_GPIO);
+	Chip_GPIO_SetDir(LPC_GPIO,PIN_PULSADOR_SERVO,INPUT);
 }

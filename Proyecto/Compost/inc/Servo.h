@@ -10,14 +10,15 @@
 
 
 
-#define 	PIN_PWM		D7
-#define		SW_ARRIBA	SW_5
-#define		SW_ABAJO	2,10
+#define 	PIN_PWM					D7
+#define		SW_ARRIBA				SW_5
+#define		SW_ABAJO				2,10
+#define		PIN_PULSADOR_SERVO		2,2
 
 #define		PERIODO_PWM MS(20)
 #define		DUTY		MS(1)
 
-#define		_1SEGUNDO	MS(1000) //El pclock esta a 2mhz...?
+#define		_1SEGUNDO	MS(1000)
 
 #define		_1MS		1000
 #define		MS(x)		(x)*_1MS
@@ -38,5 +39,6 @@ void initHardware		(	void	);
 void init_PWM 			(	void	);
 void init_timers		(	void	);
 void init_pinesPWM 		(	void	);
-
+void init_Servo			(	void	);
+void init_pulsador		(		void	);
 #endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_PWMYTFT_INC_PWM_H_ */
