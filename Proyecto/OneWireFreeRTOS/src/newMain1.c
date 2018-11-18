@@ -1,4 +1,4 @@
-#include "../../PWMyTFT/inc/FreeRTOS.h"
+#include "../inc/FreeRTOS.h"
 #include "OneWireFunctions.h"
 #include "board.h"
 #include "FreeRTOSConfig.h"
@@ -17,7 +17,7 @@ void xTemperatureTask (void *pvParameters)
 			Chip_GPIO_SetPinToggle(LPC_GPIO, 0, 22);
 			pauseus(1000000);
 		taskEXIT_CRITICAL();
-		vTaskDelay(pdMS_TO_TICKS(1000));	//Tiempo entre mediciones
+		vTaskDelay(1000/portTICK_RATE_MS);	//Tiempo entre mediciones
 	}
 }
 

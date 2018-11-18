@@ -13,6 +13,7 @@ xQueueHandle colaConexion;
 xQueueHandle qDatos;
 xQueueHandle colaADC;
 xQueueHandle xQueueADC;
+xQueueHandle qTemp;	//Cola para el paso de la temperatura
 
 xTaskHandle vUartReadHandle;
 xTaskHandle vProcessConectionHandle;
@@ -90,6 +91,8 @@ int main(void)
 
 	colaADC = xQueueCreate(10, sizeof(uint16_t));
 
+	qTemp = xQueueCreate(5, sizeof(float));	//Puse cola de 5 datos, ver si es necesario modificar
+
 	//Tarea que se fija si hay datos para leer.
 	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 2*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, &vUartReadHandle );
 
@@ -113,6 +116,9 @@ int main(void)
 	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+4, 0);
 
 	//xTaskCreate(vReadDataADC, (const char *)"vReadDataADC", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
+
+	//Se encarga de obtener la temperatura y enviarla a la cola
+	xTaskCreate(vTemperatureTask,(const signed char* )"TemperatureTask", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY+1, NULL );
 
 	vTaskSuspend(vProcessConectionHandle);
 	vTaskSuspend(vUartReadHandle);

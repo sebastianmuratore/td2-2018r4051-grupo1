@@ -20,7 +20,7 @@ void initHardware(void)
 	init_TFT();
     inicializarUART3();
     initADC();
-
+    init_OW();
 }
 
 void inicializarPulsadores(void){
