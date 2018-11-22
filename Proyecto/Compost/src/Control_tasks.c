@@ -7,25 +7,27 @@
 #include "main.h"
 
 extern xQueueHandle qDatos;
+extern xQueueHandle qHumedad;
+extern xQueueHandle qTemp;
+
 void vGetReport(void *parametros)
 {
 	Datos datos;
-	datos.humedad = 70;
-	datos.temperatura = 30;
 
 	while(1)
 	{
-		//LLama a get temperatura y get humedad
-		if(datos.humedad == 100 )
-		{
-			datos.humedad = 70;
-			datos.temperatura = 30;
+		//Lee los datos de humedad
+		if(xQueueReceive(qHumedad, &(datos.humedad), portMAX_DELAY)){
+			xQueueReset(qHumedad);
 		}
-		datos.humedad++;
-		datos.temperatura++;
+
+		//Lee los datos de temp
+		if(xQueueReceive(qTemp, &(datos.temperatura), portMAX_DELAY)){
+			xQueueReset(qTemp);
+		}
 
 		xQueueSend(qDatos,&datos,portMAX_DELAY);
-		vTaskDelay(10000/portTICK_RATE_MS);
+
 	}
 
 }

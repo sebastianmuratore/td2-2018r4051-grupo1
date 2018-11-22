@@ -19,6 +19,6 @@ void vTemperatureTask (void *pvParameters)
 			xQueueSend(qTemp,&Temperatura,portMAX_DELAY);
 			pauseus(1000000);
 		taskEXIT_CRITICAL();
-		vTaskDelay(2000/portTICK_RATE_MS);	//Tiempo entre mediciones
+		vTaskDelay(10000/portTICK_RATE_MS);	//Tiempo entre mediciones - 10seg
 	}
 }

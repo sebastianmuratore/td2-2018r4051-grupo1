@@ -11,7 +11,8 @@
 
 void InitADC(void);
 void ADC_PIN_init(void);
+uint16_t calcularPromedio(uint16_t *vector, int cantidad);
 //void EINT0_PIN_init(void);
 
 void vReadDataADC(void *a);
-void ReadDataADC(void);
+uint16_t ReadDataADC(void);

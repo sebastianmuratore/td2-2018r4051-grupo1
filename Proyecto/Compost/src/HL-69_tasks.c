@@ -10,11 +10,13 @@
 
 
 //Defines
-#define FsADC		10000
-#define FsADC1		1
+#define FsADC			10000
+#define FsADC1			1
+#define CANT_MUESTRAS 	10
 
 //Cola de mensajes
 extern xQueueHandle xQueueADC;
+extern xQueueHandle qHumedad;
 
 /* Número de items que la cola puede almacenar */
 //#define mainQUEUE_LENGTH	10
@@ -37,6 +39,19 @@ void ADC_PIN_init(void)
 	Chip_IOCON_PinMuxSet(LPC_IOCON,PIN_ADC1,FUNC_ADC);
 }
 
+uint16_t calcularPromedio(uint16_t *vector, int cantidad){
+
+	int i;
+	uint16_t acumulador;
+
+	for(i=0; i<cantidad; i++ ){
+		acumulador += vector[i];
+	}
+
+	return acumulador/cantidad;
+
+}
+
 void ADC_IRQHandler(void)
 {
 	portBASE_TYPE HigherPriorityTaskWoken = 0;
@@ -55,17 +70,50 @@ void ADC_IRQHandler(void)
 
 void vReadDataADC(void *a)
 {
+	int i = 0, flag = 0;
+	uint16_t dato;
+	uint16_t dato_procesado;
+	uint16_t dato_procesado_ant;
+	uint16_t dato_descartado;
+	uint16_t muestras[CANT_MUESTRAS];
+
+
 	while (1)
 	{
-		ReadDataADC();
-		vTaskDelay(50000/ portTICK_RATE_MS);
+		dato = ReadDataADC();
+
+		if(!flag){
+			muestras[i++] = dato;
+
+			if(i == CANT_MUESTRAS){
+				flag = 1;
+				dato_procesado = calcularPromedio(muestras, CANT_MUESTRAS);
+				dato_procesado_ant = dato_procesado;
+				xQueueSend(qHumedad, &dato_procesado, portMAX_DELAY);
+			}
+		}
+		else{
+
+			i = i % CANT_MUESTRAS;
+
+			dato_descartado = muestras[i];
+			muestras[i++] = dato;
+			dato_procesado = dato_procesado_ant + (dato - dato_descartado)/CANT_MUESTRAS;
+			dato_procesado_ant = dato_procesado;
+			xQueueSend(qHumedad, &dato_procesado, portMAX_DELAY);
+
+		}
+
+
+		//vTaskDelay(50000/ portTICK_RATE_MS);
 	}
 }
 
-void ReadDataADC()
+uint16_t ReadDataADC()
 {
-	static uint16_t porcHumedad;
-	xQueueReceive(xQueueADC, porcHumedad, portMAX_DELAY);
+	uint16_t porcHumedad;
+	xQueueReceive(xQueueADC, &porcHumedad, portMAX_DELAY);
+	return porcHumedad;
 }
 
 

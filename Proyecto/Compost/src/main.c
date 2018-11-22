@@ -13,6 +13,7 @@ xQueueHandle colaConexion;
 xQueueHandle qDatos;
 xQueueHandle colaADC;
 xQueueHandle xQueueADC;
+xQueueHandle qHumedad;
 xQueueHandle qTemp;	//Cola para el paso de la temperatura
 
 xTaskHandle vUartReadHandle;
@@ -115,10 +116,10 @@ int main(void)
 
 	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+4, 0);
 
-	//xTaskCreate(vReadDataADC, (const char *)"vReadDataADC", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
+	xTaskCreate(vReadDataADC, (const signed char *)"vReadDataADC", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, 0);
 
 	//Se encarga de obtener la temperatura y enviarla a la cola
-	xTaskCreate(vTemperatureTask,(const signed char* )"TemperatureTask", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY+1, NULL );
+	xTaskCreate(vTemperatureTask,(const signed char* )"TemperatureTask", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, NULL );
 
 	vTaskSuspend(vProcessConectionHandle);
 	vTaskSuspend(vUartReadHandle);
