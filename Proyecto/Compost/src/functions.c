@@ -1,10 +1,3 @@
-/*
-* functions.c
-
- *
- *  Created on: 14 de oct. de 2018
- *      Author: Juan Bruno
- */
 
 #include "../inc/main.h"
 
@@ -15,7 +8,7 @@ void initHardware(void)
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock/1000);
 	Board_Init();
-	init_PWM();
+	init_Servo();
 	initTouch();
 	init_TFT();
     inicializarUART3();
