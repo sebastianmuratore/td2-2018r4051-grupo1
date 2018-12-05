@@ -11,33 +11,30 @@
 void vServoWrite(void * a)
 {
 	float duty=0,dutyAnt=0;
-	portBASE_TYPE pdSem;
+	TickType_t tiempo = xTaskGetTickCount();
 
 	while (1)
 	{
-		/*
+
+
+		//Si se quiere girar manualmente
 		if(!Chip_GPIO_GetPinState(LPC_GPIO,PIN_PULSADOR_SERVO))
 		{
-			duty = invertirGiro();
+			invertirGiro();
+			vTaskDelay(1000/portTICK_RATE_MS);
+			invertirGiro();
 		}
 
-		pdSem =  xSemaphoreTake(sServo,1000/portTICK_RATE_MS);
-
-		if( pdSem == pdTRUE)
-			duty = invertirGiro();
-
-		if(duty != dutyAnt)
+		if( xTaskGetTickCount() - tiempo >= TIEMPO_LIMITE)
 		{
-			servoWrite(duty);
-			dutyAnt = duty;
+			duty = invertirGiro();
+			tiempo = xTaskGetTickCount();
+			vTaskDelay(1000/portTICK_RATE_MS);
+			invertirGiro();
 		}
 
-		xSemaphoreTake(sServo,portMAX_DELAY);*/
 
 
-		duty = invertirGiro();
-		servoWrite(duty);
-		vTaskDelay(5000/portTICK_RATE_MS);
 	}
 }
 
@@ -52,7 +49,7 @@ void servoWrite(float duty)
 
 }
 
-float invertirGiro(void)
+void invertirGiro(void)
 {
 	static int giro = 1;
 	float duty;
@@ -67,6 +64,5 @@ float invertirGiro(void)
 		duty = MS(2.4);
 		giro = 1;
 	}
-
-	return duty;
+	servoWrite(duty);
 }

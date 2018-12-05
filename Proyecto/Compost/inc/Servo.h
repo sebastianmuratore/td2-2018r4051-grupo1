@@ -23,7 +23,7 @@
 #define		_1MS		1000
 #define		MS(x)		(x)*_1MS
 
-
+#define	TIEMPO_LIMITE	60000/portTICK_RATE_MS
 #define REFRESH_RATE_ms 500
 #define TIEMPO_DE_DIAGNOSTICO_ms 2000
 #define TIEMPO_DE_DEBOUNCE_ms 20

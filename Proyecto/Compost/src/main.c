@@ -83,7 +83,7 @@ int main(void)
 	xSemaphoreTake(sMenu,portMAX_DELAY);
 	xSemaphoreTake(sInicio,portMAX_DELAY);
 
-
+/*
 	colarx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colatx = xQueueCreate(BUFFERSIZE, sizeof(char));
 	colaConexion = xQueueCreate(10, sizeof(espAnswer));
@@ -93,7 +93,7 @@ int main(void)
 	colaADC = xQueueCreate(10, sizeof(uint16_t));
 
 	qTemp = xQueueCreate(5, sizeof(float));	//Puse cola de 5 datos, ver si es necesario modificar
-
+*/
 	//Tarea que se fija si hay datos para leer.
 //	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 2*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, &vUartReadHandle );
 
