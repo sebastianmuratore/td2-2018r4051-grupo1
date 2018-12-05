@@ -13,7 +13,7 @@ void initTouch (	void	)
 //	initPinesTouch();
 }
 
-
+/*
 void initADC	(	void	)
 {
 	ADC_CLOCK_SETUP_T ADCSetup;
@@ -22,11 +22,13 @@ void initADC	(	void	)
 	Chip_ADC_Init(LPC_ADC, &ADCSetup);
 	Chip_ADC_SetSampleRate(LPC_ADC, &ADCSetup, fs);
 	Chip_ADC_EnableChannel(LPC_ADC, ADC_CHANNEL_X, TRUE);
+	Chip_ADC_EnableChannel(LPC_ADC, ADC_CH_HUM, ENABLE);
+	Chip_ADC_Int_SetChannelCmd(LPC_ADC, ADC_CH_HUM, ENABLE);
 	//Chip_ADC_EnableChannel(LPC_ADC, ADC_CHANNEL_Y, TRUE);
 	Chip_ADC_SetBurstCmd(LPC_ADC, DISABLE);
 
 }
-
+*/
 void initPinesTouch	(	void	)
 {
 	Chip_IOCON_PinMuxSet(LPC_IOCON,PIN_Xp,FUNC_GPIO);
