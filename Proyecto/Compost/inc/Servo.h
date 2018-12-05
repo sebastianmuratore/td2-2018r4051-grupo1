@@ -10,7 +10,7 @@
 
 
 
-#define 	PIN_PWM					D7
+#define 	PIN_PWM					PAD_4
 #define		SW_ARRIBA				SW_5
 #define		SW_ABAJO				2,10
 #define		PIN_PULSADOR_SERVO		2,2

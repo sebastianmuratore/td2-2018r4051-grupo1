@@ -13,8 +13,8 @@ extern xQueueHandle colaConexion;
 void inicializarUART3 (void)
 {
 
- 	Chip_IOCON_PinMuxSet(LPC_IOCON,0,0,FUNC2); //TXD3
- 	Chip_IOCON_PinMuxSet(LPC_IOCON,0,1,FUNC2); //RXD3
+ 	Chip_IOCON_PinMuxSet(LPC_IOCON,TXD_3,FUNC2); //TXD3
+ 	Chip_IOCON_PinMuxSet(LPC_IOCON,RXD_3,FUNC2); //RXD3
 
 	Chip_UART_Init(LPC_UART3);
  	Chip_UART_SetBaud(LPC_UART3, 115200);

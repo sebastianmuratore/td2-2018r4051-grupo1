@@ -155,7 +155,7 @@ int owReadTemperature(void)
 	return rv;
 }
 
-static uint8_t owCRC(uint8_t code[], uint8_t n)
+uint8_t owCRC(uint8_t code[], uint8_t n)
 {
 	uint8_t i, j, a, b, cy=0, crc=0;
 

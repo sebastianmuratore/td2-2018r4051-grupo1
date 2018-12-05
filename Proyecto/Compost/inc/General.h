@@ -58,6 +58,60 @@
 #define		PIN_21		0,2
 #define		PIN_22		0,3
 #define		PIN_23		0,21
+#define		PIN_24		0,22
+#define		PIN_25		0,27
+#define		PIN_26		0,28
+#define		PIN_27		2,13
+#define		PIN_28		VCC
+#define		PIN_29
+#define		PIN_30
+#define		PIN_31
+#define		PIN_32
+#define		PIN_33
+#define		PIN_34
+#define		PIN_35
+#define		PIN_36
+#define		PIN_37
+#define		PIN_38		0,4
+#define		PIN_39		0,5
+#define		PIN_40		0,10
+#define		PIN_41		0,11
+#define		PIN_42		2,0
+#define		PIN_43		2,1
+#define		PIN_44		2,2
+#define		PIN_45		2,3
+#define		PIN_46		2,4
+#define		PIN_47		2,5
+#define		PIN_48		2,6
+#define		PIN_49		2,7
+#define		PIN_50		2,8
+#define		PIN_51		2,10
+#define		PIN_52		2,11
+#define		PIN_53		2,12
+#define		PIN_54		GND
+
+#define		PAD_1		1,18
+#define		PAD_2		1,19
+#define		PAD_3		1,20
+#define		PAD_4		1,21
+#define		PAD_5		1,22
+#define		PAD_6		1,23
+#define		PAD_7		1,24
+#define		PAD_8		1,25
+#define		PAD_9		1,26
+#define		PAD_10		1,27
+#define		PAD_11		1,28
+#define		PAD_12		1,29
+#define		PAD_13		3,25
+#define		PAD_14		3,26
+#define		PAD_15		4,28
+#define		PAD_16		4,29
+#define		PAD_17		0,19
+#define		PAD_18		0,20
+#define		PAD_19		2,9
+
+
+
 
 #define		UN_MINUTO 		60000/portTICK_RATE_MS
 #define		DIEZ_SEG		10000/portTICK_RATE_MS

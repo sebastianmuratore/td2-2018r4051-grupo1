@@ -15,6 +15,7 @@ void vServoWrite(void * a)
 
 	while (1)
 	{
+		/*
 		if(!Chip_GPIO_GetPinState(LPC_GPIO,PIN_PULSADOR_SERVO))
 		{
 			duty = invertirGiro();
@@ -31,7 +32,12 @@ void vServoWrite(void * a)
 			dutyAnt = duty;
 		}
 
-		xSemaphoreTake(sServo,portMAX_DELAY);
+		xSemaphoreTake(sServo,portMAX_DELAY);*/
+
+
+		duty = invertirGiro();
+		servoWrite(duty);
+		vTaskDelay(5000/portTICK_RATE_MS);
 	}
 }
 
@@ -61,4 +67,6 @@ float invertirGiro(void)
 		duty = MS(2.4);
 		giro = 1;
 	}
+
+	return duty;
 }

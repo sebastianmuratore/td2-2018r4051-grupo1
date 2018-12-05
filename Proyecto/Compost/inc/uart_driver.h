@@ -57,6 +57,12 @@
 #define RX_TRIG_8		(2<<6)
 #define RX_TRIG_14		(3<<6)
 
+
+
+#define	TXD_3			PIN_09
+#define	RXD_3			PIN_10
+#define	RST_ESP			PIN_11
+
 void esp8266ProcessConnection(char dato, int*id);
 int esp8266GetStationIP(char *ip, char dato);
 int esp8266JoinAccessPoint(char dato, espAnswer* response);

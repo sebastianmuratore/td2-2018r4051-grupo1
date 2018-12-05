@@ -95,34 +95,34 @@ int main(void)
 	qTemp = xQueueCreate(5, sizeof(float));	//Puse cola de 5 datos, ver si es necesario modificar
 
 	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 2*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, &vUartReadHandle );
+//	xTaskCreate(vUartRead, (const unsigned char * ) "Leer UART", 2*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, &vUartReadHandle );
 
 	//Tarea que se fija si hay datos para leer.
-	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 3*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, &vProcessConectionHandle );
+//	xTaskCreate(vAnswerProcess, (const unsigned char * ) "Procesar respuesta", 3*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, &vProcessConectionHandle );
 
-	xTaskCreate(vConfigEsp8266, (const unsigned char * ) "Config esp8266", 5*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+3, 0 );
+//	xTaskCreate(vConfigEsp8266, (const unsigned char * ) "Config esp8266", 5*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+3, 0 );
 
-	xTaskCreate(vGetReport, (const unsigned char * ) "Get Report", 1*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0 );
+//	xTaskCreate(vGetReport, (const unsigned char * ) "Get Report", 1*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0 );
 
-	//xSemaphoreTake(sServo,portMAX_DELAY);
+//	xSemaphoreTake(sServo,portMAX_DELAY);
 
-	//xTaskCreate(vServoWrite, (const char *)"vServoWrite", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0);
+	xTaskCreate(vServoWrite, (const char *)"vServoWrite", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+2, 0);
 
 	//xTaskCreate(vAccion, (const char *)"vAccion", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
 
 	//xTaskCreate(vTouch, (const char *)"vTouch", configMINIMAL_STACK_SIZE*2, 0, tskIDLE_PRIORITY+1, 0);
 
-	xTaskCreate(vDrawMenues, (const signed char *)"vDrawMenues", 3*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+3, 0);
+//	xTaskCreate(vDrawMenues, (const signed char *)"vDrawMenues", 3*configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+3, 0);
 
-	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+4, 0);
+//	xTaskCreate(vInitLCD, (const signed char *)"InitLCD", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+4, 0);
 
-	xTaskCreate(vReadDataADC, (const signed char *)"vReadDataADC", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, 0);
+//	xTaskCreate(vReadDataADC, (const signed char *)"vReadDataADC", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, 0);
 
 	//Se encarga de obtener la temperatura y enviarla a la cola
-	xTaskCreate(vTemperatureTask,(const signed char* )"TemperatureTask", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, NULL );
+//	xTaskCreate(vTemperatureTask,(const signed char* )"TemperatureTask", configMINIMAL_STACK_SIZE, 0, tskIDLE_PRIORITY+1, NULL );
 
-	vTaskSuspend(vProcessConectionHandle);
-	vTaskSuspend(vUartReadHandle);
+//	vTaskSuspend(vProcessConectionHandle);
+//	vTaskSuspend(vUartReadHandle);
 
 	vTaskStartScheduler();
 
