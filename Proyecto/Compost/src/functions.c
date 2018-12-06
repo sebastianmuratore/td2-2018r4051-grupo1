@@ -9,7 +9,6 @@ void initHardware(void)
     SysTick_Config(SystemCoreClock/1000);
 	Board_Init();
 	init_Servo();
-//	initTouch();
 	init_TFT();
     inicializarUART3();
     initADC();

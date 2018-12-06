@@ -11,5 +11,5 @@
 
 void vServoWrite(void * a);
 void servoWrite	(float duty);
-float invertirGiro(void);
+void invertirGiro(void);
 #endif /* TPS_TD2_2018R4051_GRUPO1_PROYECTO_COMPOST_INC_SERVO_TASKS_H_ */

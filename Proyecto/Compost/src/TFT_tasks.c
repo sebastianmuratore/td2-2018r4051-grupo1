@@ -9,6 +9,8 @@ extern xQueueHandle qDatos;
 extern xSemaphoreHandle sMenu;
 extern xSemaphoreHandle sInicio;
 extern char codigoHTML[HTML_CODE_SIZE];
+extern xTaskHandle vTemperaturaHandle;
+
 
 void vInitLCD	(void* ptr)
 {
@@ -137,6 +139,7 @@ void vDrawMenues( void *a)
 		 				 		sprintf(msg,"Ingrese la direccion:\n\n%s:80",ip);
 		 				 		TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
 		 				 		xSemaphoreTake(sMenu,portMAX_DELAY);
+		 				 		vTaskResume(vTemperaturaHandle);
 		 				 		menu = PANTALLA_PPAL;
 
 								break;
@@ -147,6 +150,7 @@ void vDrawMenues( void *a)
 		 				 		 TFT_DrawText(30,30,msg,arial_bold,TFT_getColor(BLANCO));
 		 				 		 xSemaphoreTake(sMenu,portMAX_DELAY);
 		 				 		 menu = PANTALLA_PPAL;
+		 				 		 vTaskResume(vTemperaturaHandle);
 		 				 		 break;
 
 		 				 	 default:
@@ -159,7 +163,7 @@ void vDrawMenues( void *a)
 		 				 TFT_setColor(NEGRO);
 		 				 TFT_DrawRectangle(PANTALLA_COMPLETA,TRUE);
 		 				 TFT_DrawText(145,200,"Loading...",arial_bold,TFT_getColor(BLANCO));
-		 				 sem = xSemaphoreTake(sInicio,DIEZ_SEG);
+		 				 sem = xSemaphoreTake(sInicio,CINCO_SEG);
 		 				 if(sem == pdTRUE )
 		 				 {
 		 					menu = CONEXION;
@@ -177,26 +181,25 @@ void vDrawMenues( void *a)
 		 				 {
 		 					 TFT_setColor(COLOR_MARGEN_SUPERIOR);
 		 					 TFT_DrawRectangle(MARGEN_SUPERIOR,TRUE);
-		 					 TFT_DrawText(10,RENGLON(0,32),"Datos Compost : 16/11/18",arial_italic,TFT_getColor(NEGRO));
+		 					 TFT_DrawText(10,RENGLON(0,32),"Datos Compost :\n 05/12/18",arial_italic,TFT_getColor(NEGRO));
 		 					 TFT_setColor(COLOR_MARGEN_INFERIOR);
 		 					 TFT_DrawRectangle(MARGEN_INFERIOR,TRUE);
 		 					 flag = 0;
 		 				 }
 		 				 if(xQueueReceive(qDatos,&datos,portMAX_DELAY))
 		 				 {
-		 					 codigoHTML[364] = 48 + (int)(datos.temperatura/10);
-		 					 codigoHTML[365] = 48 + (int)(datos.temperatura - ((int)codigoHTML[364]-48)*10);
+		 					 codigoHTML[364] = 48 + (int)((datos.temperatura >> 4)/10);
+		 					 codigoHTML[365] = 48 + (int)((datos.temperatura >> 4) - ((int)codigoHTML[364]-48)*10);
 		 					 codigoHTML[435] = 48 + (int)(datos.humedad/10);
 		 					 codigoHTML[436] = 48 + (int)(datos.humedad - ((int)codigoHTML[435]-48)*10);
 
-
 		 					 TFT_clearText(10,RENGLON(4,32),sizeof("Humedad: xx    "),arial_italic,color);
 		 					 TFT_clearText(10,RENGLON(5,32),sizeof("Humedad: xx    "),arial_italic,color);
-		 					 sprintf(msg,"Temperatura: %.2f C",datos.temperatura);
+		 					 sprintf(msg,"Temperatura: %d C",datos.temperatura>>4);
 		 					 TFT_DrawText(10,RENGLON(4,32),msg,arial_italic,TFT_getColor(BLANCO));
-		 					 sprintf(msg,"Humedad: %.2f ",datos.humedad);
+		 					 sprintf(msg,"Humedad: %d ",datos.humedad);
 		 					 TFT_DrawText(10,RENGLON(5,32),msg,arial_italic,TFT_getColor(BLANCO));
-
+		 					 vTaskDelay(DIEZ_SEG);
 		 				 }
 		 				 break;
 
@@ -204,7 +207,7 @@ void vDrawMenues( void *a)
 		 			 case MJE_ERROR:
 		 				 TFT_setColor(ROJO);
 		 				 TFT_DrawRectangle(PANTALLA_COMPLETA,TRUE);
-		 				 TFT_DrawText(0,0,"Error!\nReinicie el dispositivo",arial_bold,TFT_getColor(BLANCO));
+		 				 TFT_DrawText(0,0,"Error!\nReinicie el\n dispositivo",arial_bold,TFT_getColor(BLANCO));
 		 				 menu = 10;
 
 		 				 break;

@@ -64,19 +64,19 @@ void 		initScreen(Rectangle* rect);
 
 //PINES
 
-#define		PIN_DCX		PIN_49
-#define		PIN_CSX		PIN_50
-#define		PIN_WRX		PIN_48
-#define		PIN_RDX		PIN_47
-#define		PIN_D0		PIN_45
+#define		PIN_DCX		PIN_39
+#define		PIN_CSX		PIN_38
+#define		PIN_WRX		PIN_40
+#define		PIN_RDX		PIN_41
+#define		PIN_D0		PIN_43
 #define		PIN_D1		PIN_44
-#define		PIN_D2		PIN_43
-#define		PIN_D3		PIN_42
-#define		PIN_D4		PIN_41
-#define		PIN_D5		PIN_40
-#define		PIN_D6		PIN_39
-#define		PIN_D7		PIN_38
-#define		PIN_RST		PIN_46
+#define		PIN_D2		PIN_45
+#define		PIN_D3		PIN_46
+#define		PIN_D4		PIN_47
+#define		PIN_D5		PIN_48
+#define		PIN_D6		PIN_49
+#define		PIN_D7		PIN_50
+#define		PIN_RST		PIN_42
 
 //MACROS
 

@@ -22,7 +22,6 @@ void init_OW (void)
 	extern volatile uint32_t * DWT_CTRL;
 //	SystemCoreClockUpdate();
 //	Board_Init();
-	SysTick_Config(SystemCoreClock/1000);
 	*DWT_CTRL |= 1;
 	initPins();
 	owSetInput();
