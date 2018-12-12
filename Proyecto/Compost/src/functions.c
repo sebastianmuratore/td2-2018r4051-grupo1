@@ -8,12 +8,12 @@ void initHardware(void)
     SystemCoreClockUpdate();
     SysTick_Config(SystemCoreClock/1000);
 	Board_Init();
-	init_Servo();
+//	init_Servo();
 //	initTouch();
 	init_TFT();
     inicializarUART3();
-    initADC();
-    init_OW();
+    //initADC();
+//    init_OW();
 }
 
 void inicializarPulsadores(void){

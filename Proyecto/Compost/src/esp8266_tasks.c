@@ -50,7 +50,6 @@ char ip[20];
 void vConfigEsp8266(void *parametros){
 
 	espStatus_e rv = ESP8266_NO_ANSWER;
-	static char respuesta[BUFFERSIZE] = {0};
 	int i = 0;
 
 

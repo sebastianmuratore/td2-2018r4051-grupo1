@@ -11,7 +11,7 @@
 void vServoWrite(void * a)
 {
 	float duty=0,dutyAnt=0;
-	TickType_t tiempo = xTaskGetTickCount();
+	portTickType tiempo = xTaskGetTickCount();
 
 	while (1)
 	{
@@ -21,15 +21,15 @@ void vServoWrite(void * a)
 		if(!Chip_GPIO_GetPinState(LPC_GPIO,PIN_PULSADOR_SERVO))
 		{
 			invertirGiro();
-			vTaskDelay(1000/portTICK_RATE_MS);
+			vTaskDelay(5000/portTICK_RATE_MS);
 			invertirGiro();
 		}
 
 		if( xTaskGetTickCount() - tiempo >= TIEMPO_LIMITE)
 		{
-			duty = invertirGiro();
+			invertirGiro();
 			tiempo = xTaskGetTickCount();
-			vTaskDelay(1000/portTICK_RATE_MS);
+			vTaskDelay(5000/portTICK_RATE_MS);
 			invertirGiro();
 		}
 

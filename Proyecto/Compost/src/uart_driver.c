@@ -32,14 +32,15 @@ void inicializarUART3 (void)
  	Chip_UART_ReadByte(LPC_UART3);
 
  	// Habilito transmisión en pin TXD
- 	Chip_UART_TXEnable(LPC_UART3);
- 	//Chip_UART_TXDisable(LPC_UART3);
+	Chip_UART_TXEnable(LPC_UART3);
+	//Chip_UART_TXDisable(LPC_UART3);
 
- 	//LPC_UART3->IER = IER_RBR;		/* Enable UART3 interrupt */
- 	Chip_UART_IntEnable(LPC_UART3,(UART_IER_RBRINT | UART_IER_THREINT));
+	//LPC_UART3->IER = IER_RBR;		/* Enable UART3 interrupt */
+	Chip_UART_IntEnable(LPC_UART3,(UART_IER_RBRINT | UART_IER_THREINT));
 
- 	NVIC_EnableIRQ(UART3_IRQn);
- 	NVIC_SetPriority(UART3_IRQn,8);
+	NVIC_EnableIRQ(UART3_IRQn);
+	NVIC_SetPriority(UART3_IRQn,7);
+
 
  	inicializado = 1;
 
@@ -655,23 +656,26 @@ void inicializarUART3 (void)
 	 	case IIR_THRE:
 	 		//Interrupción por Transmisión,FIFO de TX vacía, la intento llenar.
 
-	 		for(i=0;i<8;i++)
-	 		{
-	 			//Leo los datos pendientes en la cola de transmisión
-	 			ret = xQueueReceiveFromISR(colatx,&dato,&HigherPriorityTaskWoken);
-
-	 			//En caso de que haya datos en la cola de transmisión
-	 			if(ret!=errQUEUE_EMPTY)
+	 		if(!xQueueIsQueueEmptyFromISR(colatx)){
+	 			for(i=0;i<16;i++)
 				{
-	 				//Envió el dato por la uart a través del registro correspondiente
-	 				p->THR = dato;
-	 			}
-	 			else
-	 			{
-	 				//Chip_UART_IntDisable(LPC_UART3, UART_IER_THREINT);
-	 				//Chip_UART_IntEnable(LPC_UART3, UART_IER_RBRINT);
-					break;
+					//Leo los datos pendientes en la cola de transmisión
+					ret = xQueueReceiveFromISR(colatx,&dato,&HigherPriorityTaskWoken);
+
+					//En caso de que haya datos en la cola de transmisión
+					if(ret!=errQUEUE_EMPTY)
+					{
+						//Envió el dato por la uart a través del registro correspondiente
+						p->THR = dato;
+					}
+					else
+					{
+						//Chip_UART_IntDisable(LPC_UART3, UART_IER_THREINT);
+						//Chip_UART_IntEnable(LPC_UART3, UART_IER_RBRINT);
+						break;
+					}
 				}
+
 	 		}
 
 			break;
