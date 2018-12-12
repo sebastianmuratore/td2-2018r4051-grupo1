@@ -33,6 +33,10 @@ void vServoWrite(void * a)
 			invertirGiro();
 		}
 
+		invertirGiro();
+		vTaskDelay(3000/portTICK_RATE_MS);
+		invertirGiro();
+		vTaskDelay(DIEZ_SEG);
 
 
 	}
@@ -58,7 +62,6 @@ void invertirGiro(void)
 		duty = MS(0.6);
 		giro = 0;
 	}
-
 	else
 	{
 		duty = MS(2.4);

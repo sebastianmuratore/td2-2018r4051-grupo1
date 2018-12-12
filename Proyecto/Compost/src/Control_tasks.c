@@ -19,6 +19,7 @@ void vGetReport(void *parametros)
 		//Lee los datos de humedad
 		if(xQueueReceive(qHumedad, &(datos.humedad), portMAX_DELAY)){
 			xQueueReset(qHumedad);
+
 		}
 
 		//Lee los datos de temp

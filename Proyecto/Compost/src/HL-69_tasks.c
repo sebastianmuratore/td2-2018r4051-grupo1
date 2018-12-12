@@ -23,6 +23,7 @@ extern xQueueHandle qHumedad;
 
 void initADC(void)
 {
+	Chip_IOCON_PinMuxSet(LPC_IOCON,PIN_ADC1,FUNC_ADC);
 	ADC_CLOCK_SETUP_T adc;
 	Chip_ADC_Init(LPC_ADC, &adc);
 	Chip_ADC_SetSampleRate(LPC_ADC, &adc, fs);
@@ -38,8 +39,8 @@ void ADC_PIN_init(void)
 {
 	Chip_IOCON_PinMuxSet(LPC_IOCON,PIN_ADC1,FUNC_ADC);
 }
-*/
 
+*/
 uint16_t calcularPromedio(uint16_t *vector, int cantidad){
 
 	int i;
@@ -67,14 +68,19 @@ void ADC_IRQHandler(void)
 
 }
 
-uint16_t ReadDataADC()
+void vReadDataADC(void* a )
 {
 	uint16_t dataHumedad;
-	xQueueReceive(xQueueADC, &dataHumedad, portMAX_DELAY);
-	dataHumedad=100-((dataHumedad*100)/4095);
-	return dataHumedad;
-}
 
+	while(1)
+	{
+		xQueueReceive(xQueueADC, &dataHumedad, portMAX_DELAY);
+		dataHumedad=100-((dataHumedad*100)/4095);
+		xQueueSend(qHumedad, &dataHumedad, portMAX_DELAY);
+		vTaskDelay(CINCO_SEG);
+	}
+}
+/*
 void vReadDataADC(void *a)
 {
 	int i = 0, flag = 0;
@@ -116,5 +122,5 @@ void vReadDataADC(void *a)
 	}
 }
 
-
+*/
 

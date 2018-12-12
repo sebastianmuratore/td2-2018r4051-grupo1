@@ -11,14 +11,14 @@ extern xQueueHandle qTemp;
 
 void vTemperatureTask (void *pvParameters)
 {
-	float Temperatura=0;
+	int Temperatura=0;
 	while(1)
 	{
 		taskENTER_CRITICAL();
-			Temperatura=owReadTemperature();
-			xQueueSend(qTemp,&Temperatura,portMAX_DELAY);
-			pauseus(1000000);
+		Temperatura=owReadTemperature();
+		xQueueSend(qTemp,&Temperatura,portMAX_DELAY);
+		pauseus(1000000);
 		taskEXIT_CRITICAL();
-		vTaskDelay(10000/portTICK_RATE_MS);	//Tiempo entre mediciones - 10seg
+		vTaskDelay(DIEZ_SEG);	//Tiempo entre mediciones - 10seg
 	}
 }

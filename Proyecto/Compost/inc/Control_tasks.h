@@ -11,8 +11,8 @@
 
 typedef struct
 {
-	float temperatura;
-	float humedad;
+	uint16_t temperatura;
+	uint16_t humedad;
 }Datos;
 
 void vGetReport(void *parametros);
